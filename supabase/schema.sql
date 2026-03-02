@@ -26,11 +26,15 @@ create table if not exists product_variants (
   size        text not null check (size in ('1.25m', '1.50m')),
   color       text not null check (color in ('negro', 'oxido')),
   price       numeric(12, 2) not null,
+  sale_price  numeric(12, 2),                -- null = sin oferta; valor = precio de oferta
   stock       integer default 0,
   active      boolean default true,
   created_at  timestamptz default now(),
   unique (product_id, size, color)
 );
+
+-- Migration: add sale_price if upgrading from an older schema
+-- alter table product_variants add column if not exists sale_price numeric(12, 2);
 
 -- ─────────────────────────────────────────────
 -- CLIENTES

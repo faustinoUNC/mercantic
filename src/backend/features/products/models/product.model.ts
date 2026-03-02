@@ -8,6 +8,7 @@ export interface ProductVariant {
   size: ProductSize
   color: ProductColor
   price: number
+  sale_price: number | null   // null = no offer active
   stock: number
   active: boolean
   created_at: string
@@ -32,6 +33,7 @@ export interface ProductWithVariants extends Product {
 
 export interface UpdateVariantPayload {
   price?: number
+  sale_price?: number | null
   stock?: number
   active?: boolean
 }
