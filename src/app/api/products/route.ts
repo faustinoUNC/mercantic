@@ -1,7 +1,14 @@
 import { NextRequest } from 'next/server'
-import { handleList, handleListAdmin } from '@/backend/features/products/endpoints/product.endpoints'
+import { handleList, handleListAdmin, handleUpdateProduct, handleUpdateVariant } from '@/backend/features/products/endpoints/product.endpoints'
 
 export async function GET(req: NextRequest) {
   const admin = new URL(req.url).searchParams.get('admin') === 'true'
   return admin ? handleListAdmin() : handleList()
+}
+
+export async function PATCH(req: NextRequest) {
+  const body = await req.json()
+  const { type, id, ...payload } = body
+  if (type === 'variant') return handleUpdateVariant(id, payload)
+  return handleUpdateProduct(id, payload)
 }
