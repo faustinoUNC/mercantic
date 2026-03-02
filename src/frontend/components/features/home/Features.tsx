@@ -100,10 +100,10 @@ export function Features() {
         </motion.div>
 
         {/* Features grid */}
-        <div style={{
+        <div className="features-grid" style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-          gap: '1.5rem',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(min(280px, 100%), 1fr))',
+          gap: '1rem',
         }}>
           {FEATURES.map((feature, index) => {
             const Icon = feature.icon
@@ -114,11 +114,12 @@ export function Features() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.6, delay: index * 0.08 }}
+                className="feature-card"
                 style={{
                   background: 'linear-gradient(145deg, rgba(45, 26, 14, 0.8), rgba(26, 15, 7, 0.9))',
                   border: '1px solid rgba(92, 53, 32, 0.4)',
                   borderRadius: '10px',
-                  padding: '2rem',
+                  padding: 'clamp(1rem, 4vw, 2rem)',
                   position: 'relative',
                   overflow: 'hidden',
                   transition: 'all 0.35s ease',
@@ -169,6 +170,18 @@ export function Features() {
           })}
         </div>
       </div>
+
+      <style>{`
+        /* 2 columns on small mobile */
+        @media (max-width: 540px) {
+          .features-grid {
+            grid-template-columns: repeat(2, 1fr) !important;
+            gap: 0.75rem !important;
+          }
+          .feature-card h3 { font-size: 1rem !important; }
+          .feature-card p  { font-size: 0.8rem !important; }
+        }
+      `}</style>
     </section>
   )
 }

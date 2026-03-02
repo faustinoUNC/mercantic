@@ -173,10 +173,10 @@ export function ProductShowcase() {
         </motion.div>
 
         {/* Product cards */}
-        <div style={{
+        <div className="showcase-grid" style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))',
-          gap: '2rem',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(min(340px, 100%), 1fr))',
+          gap: '1.5rem',
         }}>
           {PRODUCTS.map((product, index) => (
             <motion.div
@@ -339,7 +339,7 @@ export function ProductShowcase() {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            gap: '3rem',
+            gap: 'clamp(1rem, 4vw, 3rem)',
             flexWrap: 'wrap',
           }}
         >
@@ -353,6 +353,12 @@ export function ProductShowcase() {
           <span style={{ color: '#7a5c44', fontSize: '0.7rem', letterSpacing: '0.2em', textTransform: 'uppercase' }}>· Chapa 3,2mm</span>
         </motion.div>
       </div>
+
+      <style>{`
+        @media (max-width: 480px) {
+          .showcase-grid { gap: 1rem !important; }
+        }
+      `}</style>
     </section>
   )
 }

@@ -99,6 +99,7 @@ export function CTA() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6, delay: 0.3 }}
+          className="cta-buttons"
           style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}
         >
           <a
@@ -200,6 +201,20 @@ export function CTA() {
           ))}
         </motion.div>
       </div>
+
+      <style>{`
+        @media (max-width: 480px) {
+          #contacto .cta-buttons {
+            flex-direction: column !important;
+            align-items: stretch !important;
+            padding: 0 0.5rem;
+          }
+          #contacto .cta-buttons a {
+            justify-content: center !important;
+            width: 100% !important;
+          }
+        }
+      `}</style>
     </section>
   )
 }
