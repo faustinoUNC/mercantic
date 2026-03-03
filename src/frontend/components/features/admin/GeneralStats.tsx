@@ -4,7 +4,7 @@ import { useState, useRef } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Tooltip as InfoTooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
-import { TrendingUp, Package, Clock, CheckCircle, ChevronLeft, ChevronRight, RefreshCw, DatabaseZap } from 'lucide-react'
+import { TrendingUp, Package, Clock, CheckCircle, ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react'
 import {
   Chart as ChartJS,
   CategoryScale, LinearScale, BarElement, LineElement, PointElement,
@@ -74,32 +74,11 @@ function KpiCard({
 export function GeneralStats() {
   const [viewMode, setViewMode] = useState<ViewMode>('days')
   const [offset, setOffset] = useState(0)
-  const [seeding, setSeeding] = useState(false)
-  const [seedMsg, setSeedMsg] = useState('')
   const { stats, isLoading, isRefreshing, refresh } = useAnalytics(viewMode, offset)
 
   const handleViewChange = (mode: ViewMode) => {
     setViewMode(mode)
     setOffset(0)
-  }
-
-  const handleSeed = async () => {
-    setSeeding(true)
-    setSeedMsg('')
-    try {
-      const res = await fetch('/api/admin/seed', { method: 'POST' })
-      const data = await res.json()
-      if (res.ok) {
-        setSeedMsg(`✓ ${data.count} pedidos de prueba creados`)
-        refresh()
-      } else {
-        setSeedMsg(`Error: ${data.error}`)
-      }
-    } catch {
-      setSeedMsg('Error de conexión')
-    } finally {
-      setSeeding(false)
-    }
   }
 
   // Show skeleton only on first load, not on subsequent refreshes
@@ -432,26 +411,6 @@ export function GeneralStats() {
         </CardContent>
       </Card>
 
-      {/* Seed test data */}
-      <Card className="border-dashed">
-        <CardContent className="flex flex-col sm:flex-row items-start sm:items-center gap-3 py-4">
-          <div className="flex-1">
-            <p className="text-sm font-medium">Datos de prueba</p>
-            <p className="text-xs text-muted-foreground">Genera 40 pedidos ficticios para ver los gráficos con datos reales.</p>
-            {seedMsg && <p className={`text-xs mt-1 ${seedMsg.startsWith('✓') ? 'text-green-600' : 'text-destructive'}`}>{seedMsg}</p>}
-          </div>
-          <Button
-            variant="outline"
-            size="sm"
-            className="gap-2 shrink-0"
-            onClick={handleSeed}
-            disabled={seeding}
-          >
-            <DatabaseZap className="w-4 h-4" />
-            {seeding ? 'Generando…' : 'Cargar datos de prueba'}
-          </Button>
-        </CardContent>
-      </Card>
     </div>
   )
 }

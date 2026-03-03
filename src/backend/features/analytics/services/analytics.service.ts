@@ -1,6 +1,6 @@
 import * as repo from '../repository/analytics.repository'
 import type { GeneralStats, DailySale, ViewMode } from '../models/analytics.model'
-import { subDays, subWeeks, subMonths, subYears, startOfDay, endOfDay, format } from 'date-fns'
+import { subDays, subWeeks, subMonths, subYears, startOfDay, endOfDay, startOfWeek, endOfWeek, format } from 'date-fns'
 import { es } from 'date-fns/locale'
 
 export async function getGeneralStats(viewMode: ViewMode = 'days', offset = 0): Promise<GeneralStats> {
@@ -130,8 +130,8 @@ async function getDailySalesByMode(viewMode: ViewMode, offset: number): Promise<
     let key: string
 
     if (viewMode === 'days') key = format(date, 'yyyy-MM-dd')
-    else if (viewMode === 'weeks') key = `Sem ${format(date, 'w', { locale: es })}`
-    else if (viewMode === 'months') key = format(date, 'MMM yyyy', { locale: es })
+    else if (viewMode === 'weeks') key = format(startOfWeek(date, { weekStartsOn: 1 }), 'yyyy-MM-dd')
+    else if (viewMode === 'months') key = format(date, 'yyyy-MM')
     else key = format(date, 'yyyy')
 
     const existing = bucketMap.get(key) ?? { count: 0, revenue: 0 }
@@ -140,7 +140,19 @@ async function getDailySalesByMode(viewMode: ViewMode, offset: number): Promise<
     bucketMap.set(key, existing)
   }
 
-  return Array.from(bucketMap.entries()).map(([date, v]) => ({
-    date, count: v.count, revenue: v.revenue,
-  }))
+  return Array.from(bucketMap.entries())
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([key, v]) => {
+      let label = key
+      if (viewMode === 'days') {
+        label = format(new Date(`${key}T12:00:00`), 'd MMM', { locale: es })
+      } else if (viewMode === 'weeks') {
+        const ws = new Date(`${key}T12:00:00`)
+        const we = endOfWeek(ws, { weekStartsOn: 1 })
+        label = `${format(ws, 'd', { locale: es })}–${format(we, 'd MMM', { locale: es })}`
+      } else if (viewMode === 'months') {
+        label = format(new Date(`${key}-01T12:00:00`), 'MMM yyyy', { locale: es })
+      }
+      return { date: label, count: v.count, revenue: v.revenue }
+    })
 }

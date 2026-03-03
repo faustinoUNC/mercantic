@@ -11,27 +11,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Tooltip as InfoTooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import {
-  Search, Package, TrendingUp, Clock, CheckCircle, XCircle,
+  Search, Package, TrendingUp, Clock, CheckCircle,
   User, Phone, Mail, MapPin, FileText, ShoppingBag, Copy, Check,
 } from 'lucide-react'
 import type { OrderComplete } from '@/backend/features/orders/models/order.model'
 import { useOrders } from '@/frontend/hooks/useOrders'
 import { formatPrice, formatDate } from '@/lib/utils/formatting'
-
-function PaymentBadge({ status }: { status: string }) {
-  const map: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline'; icon: typeof CheckCircle }> = {
-    paid:      { label: 'Pagado',      variant: 'default',     icon: CheckCircle },
-    pending:   { label: 'Pendiente',   variant: 'secondary',   icon: Clock       },
-    failed:    { label: 'Fallido',     variant: 'destructive', icon: XCircle     },
-    refunded:  { label: 'Reembolsado', variant: 'outline',     icon: XCircle     },
-  }
-  const { label, variant, icon: Icon } = map[status] ?? map.pending
-  return (
-    <Badge variant={variant} className="gap-1">
-      <Icon className="w-3 h-3" /> {label}
-    </Badge>
-  )
-}
 
 function DeliveryBadge({ status }: { status: string }) {
   const map: Record<string, string> = {
@@ -45,7 +30,6 @@ function DeliveryBadge({ status }: { status: string }) {
 export function OrdersTable() {
   const { orders, isLoading, lastUpdated, updateOrder } = useOrders()
   const [search, setSearch] = useState('')
-  const [paymentFilter, setPaymentFilter] = useState('all')
   const [deliveryFilter, setDeliveryFilter] = useState('all')
   const [page, setPage] = useState(1)
   const [selected, setSelected] = useState<OrderComplete | null>(null)
@@ -53,10 +37,9 @@ export function OrdersTable() {
   const PER_PAGE = 10
 
   // reset page on filter change
-  useEffect(() => { setPage(1) }, [search, paymentFilter, deliveryFilter])
+  useEffect(() => { setPage(1) }, [search, deliveryFilter])
 
   const filtered = orders.filter(o => {
-    if (paymentFilter !== 'all' && o.payment_status !== paymentFilter) return false
     if (deliveryFilter !== 'all' && o.delivery_status !== deliveryFilter) return false
     if (search.trim()) {
       const q = search.toLowerCase()
@@ -148,19 +131,6 @@ export function OrdersTable() {
             </div>
             <div className="flex gap-3 flex-wrap">
               <div className="flex flex-col gap-1">
-                <label className="text-xs text-muted-foreground pl-1">Estado de pago</label>
-                <Select value={paymentFilter} onValueChange={setPaymentFilter}>
-                  <SelectTrigger className="w-[160px]"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todos</SelectItem>
-                    <SelectItem value="paid">Pagado</SelectItem>
-                    <SelectItem value="pending">Pendiente</SelectItem>
-                    <SelectItem value="failed">Fallido</SelectItem>
-                    <SelectItem value="refunded">Reembolsado</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="flex flex-col gap-1">
                 <label className="text-xs text-muted-foreground pl-1">Estado de envío</label>
                 <Select value={deliveryFilter} onValueChange={setDeliveryFilter}>
                   <SelectTrigger className="w-[160px]"><SelectValue /></SelectTrigger>
@@ -186,7 +156,6 @@ export function OrdersTable() {
                   <TableHead>Cliente</TableHead>
                   <TableHead>Producto</TableHead>
                   <TableHead>Monto</TableHead>
-                  <TableHead>Pago</TableHead>
                   <TableHead>Envío</TableHead>
                   <TableHead></TableHead>
                 </TableRow>
@@ -194,7 +163,7 @@ export function OrdersTable() {
               <TableBody>
                 {paginated.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
+                    <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
                       {search ? 'No se encontraron pedidos con esa búsqueda' : 'No hay pedidos que mostrar'}
                     </TableCell>
                   </TableRow>
@@ -217,7 +186,6 @@ export function OrdersTable() {
                       ) : '—'}
                     </TableCell>
                     <TableCell className="font-semibold">{formatPrice(order.final_amount)}</TableCell>
-                    <TableCell><PaymentBadge status={order.payment_status} /></TableCell>
                     <TableCell>
                       <Select
                         value={order.delivery_status}

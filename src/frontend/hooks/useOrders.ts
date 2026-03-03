@@ -8,8 +8,8 @@ export function useOrders() {
   const [isLoading, setIsLoading] = useState(true)
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
 
-  const fetchOrders = useCallback(async () => {
-    setIsLoading(true)
+  const fetchOrders = useCallback(async (silent = false) => {
+    if (!silent) setIsLoading(true)
     try {
       const res = await fetch('/api/orders')
       const data = await res.json()
@@ -18,18 +18,20 @@ export function useOrders() {
     } catch (err) {
       console.error('[useOrders] fetch error:', err)
     } finally {
-      setIsLoading(false)
+      if (!silent) setIsLoading(false)
     }
   }, [])
 
   const updateOrder = useCallback(async (id: number, payload: UpdateOrderPayload) => {
+    // Optimistic update for instant UI feedback (e.g. "Por Despachar" count)
+    setOrders(prev => prev.map(o => o.id === id ? { ...o, ...payload } : o))
     const res = await fetch(`/api/orders/${id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     })
     if (res.ok) {
-      await fetchOrders()
+      fetchOrders(true) // silent refresh without loading spinner
     }
     return res.ok
   }, [fetchOrders])
