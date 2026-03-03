@@ -1,4 +1,4 @@
-export type PaymentMethod = 'transferencia' | 'tarjeta' | 'efectivo'
+export type PaymentMethod = 'transferencia' | 'tarjeta' | 'efectivo' | 'modo'
 export type PaymentStatus = 'pending' | 'paid' | 'failed' | 'refunded'
 export type DeliveryStatus = 'pending' | 'shipped' | 'delivered'
 
@@ -45,6 +45,16 @@ export interface OrderComplete {
   discount_code?: { code: string } | null
 }
 
+export interface OrderItem {
+  id: string
+  order_id: number
+  variant_id: string | null
+  quantity: number
+  unit_price: number
+  subtotal: number
+  created_at: string
+}
+
 export interface CreateOrderPayload {
   customer: {
     name: string
@@ -52,7 +62,10 @@ export interface CreateOrderPayload {
     phone?: string
     dni?: string
   }
-  variant_id: string
+  /** Multi-item checkout (new) */
+  items?: { variant_id: string; quantity: number }[]
+  /** Single-item legacy (deprecated — kept for backwards compat) */
+  variant_id?: string
   quantity?: number
   payment_method: PaymentMethod
   discount_code?: string

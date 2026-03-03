@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
-import type { OrderComplete, CreateOrderPayload, UpdateOrderPayload, Customer } from '../models/order.model'
+import type { OrderComplete, UpdateOrderPayload, Customer } from '../models/order.model'
 
 const ORDER_SELECT = `
   *,
@@ -47,7 +47,7 @@ export async function createCustomer(payload: {
 
 export async function createOrder(payload: {
   customer_id: string
-  variant_id: string
+  variant_id?: string | null
   quantity: number
   unit_price: number
   discount_code_id?: string | null
@@ -59,7 +59,7 @@ export async function createOrder(payload: {
   city?: string
   province?: string
   postal_code?: string
-}): Promise<OrderComplete> {
+}, orderItems?: { variant_id: string; quantity: number; unit_price: number; subtotal: number }[]): Promise<OrderComplete> {
   const supabase = await createClient()
   const { data, error } = await supabase
     .from('orders')
@@ -68,7 +68,19 @@ export async function createOrder(payload: {
     .single()
 
   if (error) throw new Error(error.message)
-  return data as OrderComplete
+  const order = data as OrderComplete
+
+  // Insert order_items if provided
+  if (orderItems && orderItems.length > 0) {
+    const rows = orderItems.map(i => ({ order_id: order.id, ...i }))
+    const { error: itemsError } = await supabase.from('order_items').insert(rows)
+    // Non-fatal: table may not exist yet if migration hasn't been applied
+    if (itemsError && !itemsError.message.includes('order_items')) {
+      console.error('order_items insert error:', itemsError.message)
+    }
+  }
+
+  return order
 }
 
 export async function updateOrder(id: number, payload: UpdateOrderPayload & {

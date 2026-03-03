@@ -79,7 +79,7 @@ create table if not exists orders (
   discount_code_id    uuid references discount_codes(id) on delete set null,
   discount_amount     numeric(12, 2) default 0,
   final_amount        numeric(12, 2) not null,
-  payment_method      text check (payment_method in ('transferencia', 'tarjeta', 'efectivo')),
+  payment_method      text check (payment_method in ('transferencia', 'tarjeta', 'efectivo', 'modo')),
   payment_status      text default 'pending'
                       check (payment_status in ('pending', 'paid', 'failed', 'refunded')),
   delivery_status     text default 'pending'
@@ -105,6 +105,25 @@ create index if not exists idx_orders_payment_status  on orders(payment_status);
 create index if not exists idx_orders_delivery_status on orders(delivery_status);
 create index if not exists idx_orders_created_at      on orders(created_at desc);
 create index if not exists idx_variants_product_id    on product_variants(product_id);
+
+-- ─────────────────────────────────────────────
+-- ORDER ITEMS (migration — carrito multi-item)
+-- ─────────────────────────────────────────────
+create table if not exists order_items (
+  id         uuid primary key default gen_random_uuid(),
+  order_id   integer not null references orders(id) on delete cascade,
+  variant_id uuid references product_variants(id) on delete set null,
+  quantity   integer not null default 1,
+  unit_price numeric(12,2) not null,
+  subtotal   numeric(12,2) not null,
+  created_at timestamptz default now()
+);
+create index if not exists idx_order_items_order_id on order_items(order_id);
+
+-- Migration: allow 'modo' payment method if upgrading from older schema
+-- alter table orders drop constraint if exists orders_payment_method_check;
+-- alter table orders add constraint orders_payment_method_check
+--   check (payment_method in ('transferencia', 'tarjeta', 'efectivo', 'modo'));
 
 -- ─────────────────────────────────────────────
 -- DATOS INICIALES — Productos y variantes

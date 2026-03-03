@@ -1,18 +1,31 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { ShoppingBag, Check } from 'lucide-react'
 import type { ProductVariant } from '@/backend/features/products/models/product.model'
+import { useCart } from '@/frontend/context/CartContext'
 
 const COLOR_LABELS: Record<string, string> = { negro: 'Negro', oxido: 'Óxido' }
 const COLOR_SWATCHES: Record<string, string> = { negro: '#1a1a1a', oxido: '#8B4513' }
 
+interface ProductInfo {
+  id: string
+  name: string
+  slug: string
+  shape: 'round' | 'square'
+}
+
 interface VariantSelectorProps {
   variants: ProductVariant[]
   includes?: string[]
+  productInfo?: ProductInfo
   onVariantChange?: (variant: ProductVariant) => void
 }
 
-export function VariantSelector({ variants, includes, onVariantChange }: VariantSelectorProps) {
+export function VariantSelector({ variants, includes, productInfo, onVariantChange }: VariantSelectorProps) {
+  const { addItem } = useCart()
+  const [added, setAdded] = useState(false)
+
   const activeVariants = variants.filter(v => v.active)
   const sizes = [...new Set(activeVariants.map(v => v.size))].sort()
   const [selectedSize, setSelectedSize] = useState(sizes[0] ?? '1.25m')
@@ -39,6 +52,23 @@ export function VariantSelector({ variants, includes, onVariantChange }: Variant
   const discountPct = hasSale ? Math.round((1 - displayPrice / originalPrice) * 100) : 0
 
   const includesList = includes?.length ? includes : ['Parrilla', 'Estaca', 'Tapa']
+
+  function handleAddToCart() {
+    if (!selectedVariant || !productInfo) return
+    addItem({
+      variantId: selectedVariant.id,
+      productId: productInfo.id,
+      productName: productInfo.name,
+      productSlug: productInfo.slug,
+      shape: productInfo.shape,
+      size: selectedVariant.size,
+      color: selectedVariant.color,
+      price: selectedVariant.price,
+      salePrice: selectedVariant.sale_price ?? null,
+    })
+    setAdded(true)
+    setTimeout(() => setAdded(false), 2000)
+  }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
@@ -151,7 +181,7 @@ export function VariantSelector({ variants, includes, onVariantChange }: Variant
               </div>
             )}
           </div>
-          <div style={{ color: '#5c3520', fontSize: '0.75rem', marginTop: '2px' }}>ARS · Transferencia / Efectivo</div>
+          <div style={{ color: '#5c3520', fontSize: '0.75rem', marginTop: '2px' }}>ARS · Transferencia / Efectivo / MP</div>
         </div>
         <div style={{ textAlign: 'right' }}>
           <div style={{ color: '#5c3520', fontSize: '0.75rem' }}>{selectedSize}</div>
@@ -161,6 +191,36 @@ export function VariantSelector({ variants, includes, onVariantChange }: Variant
           </div>
         </div>
       </div>
+
+      {/* Add to cart button — only when productInfo is provided */}
+      {productInfo && (
+        <button
+          onClick={handleAddToCart}
+          disabled={!selectedVariant}
+          style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
+            background: added
+              ? 'linear-gradient(135deg, #16a34a, #22c55e)'
+              : 'linear-gradient(135deg, #c4622d, #e8783a)',
+            color: '#f5e6d3',
+            padding: '1rem',
+            borderRadius: '8px',
+            border: 'none',
+            fontWeight: 700,
+            fontSize: '0.9rem',
+            letterSpacing: '0.08em',
+            textTransform: 'uppercase',
+            cursor: selectedVariant ? 'pointer' : 'not-allowed',
+            opacity: selectedVariant ? 1 : 0.5,
+            boxShadow: added
+              ? '0 0 30px rgba(22, 163, 74, 0.3)'
+              : '0 0 30px rgba(196, 98, 45, 0.3)',
+            transition: 'all 0.3s ease',
+          }}
+        >
+          {added ? <><Check size={18} /> Agregado al carrito</> : <><ShoppingBag size={18} /> Agregar al carrito</>}
+        </button>
+      )}
     </div>
   )
 }

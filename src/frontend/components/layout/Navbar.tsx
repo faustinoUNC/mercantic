@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Menu, X, Flame } from 'lucide-react'
+import { CartButton } from '@/frontend/components/features/cart/CartButton'
 
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false)
@@ -94,10 +95,12 @@ export function Navbar() {
             >
               Consultar
             </a>
+            <CartButton />
           </div>
 
-          {/* Mobile: WhatsApp CTA + hamburger */}
+          {/* Mobile: Cart + WhatsApp CTA + hamburger */}
           <div className="nav-mobile" style={{ display: 'none', alignItems: 'center', gap: '0.5rem' }}>
+            <CartButton />
             <a
               href="https://wa.me/5493513000000"
               target="_blank"

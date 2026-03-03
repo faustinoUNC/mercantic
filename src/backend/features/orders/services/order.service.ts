@@ -11,24 +11,43 @@ export async function getOrder(id: number): Promise<OrderComplete | null> {
 }
 
 export async function createOrder(payload: CreateOrderPayload): Promise<OrderComplete> {
-  // 1. Crear o reutilizar cliente
-  const customer = await repo.createCustomer(payload.customer)
-
-  // 2. Obtener precio de la variante
   const { createClient } = await import('@/lib/supabase/server')
   const supabase = await createClient()
-  const { data: variant } = await supabase
+
+  // 1. Crear cliente
+  const customer = await repo.createCustomer(payload.customer)
+
+  // 2. Normalise to items array (supports both legacy single-item and new multi-item)
+  const rawItems: { variant_id: string; quantity: number }[] = payload.items && payload.items.length > 0
+    ? payload.items
+    : payload.variant_id
+      ? [{ variant_id: payload.variant_id, quantity: payload.quantity ?? 1 }]
+      : []
+
+  if (rawItems.length === 0) throw new Error('Se requiere al menos un item')
+
+  // 3. Obtener precios de todas las variantes
+  const variantIds = rawItems.map(i => i.variant_id)
+  const { data: variants } = await supabase
     .from('product_variants')
-    .select('price')
-    .eq('id', payload.variant_id)
-    .single()
+    .select('id, price')
+    .in('id', variantIds)
 
-  if (!variant) throw new Error('Variante no encontrada')
+  if (!variants || variants.length === 0) throw new Error('Variantes no encontradas')
 
-  const unitPrice = variant.price
-  const quantity = payload.quantity ?? 1
+  const priceMap = Object.fromEntries(variants.map(v => [v.id, v.price as number]))
 
-  // 3. Aplicar descuento si existe
+  // 4. Calcular subtotales
+  let grossAmount = 0
+  const orderItems = rawItems.map(i => {
+    const unitPrice = priceMap[i.variant_id]
+    if (!unitPrice) throw new Error(`Variante ${i.variant_id} no encontrada`)
+    const sub = unitPrice * i.quantity
+    grossAmount += sub
+    return { variant_id: i.variant_id, quantity: i.quantity, unit_price: unitPrice, subtotal: sub }
+  })
+
+  // 5. Aplicar descuento si existe
   let discountCodeId: string | null = null
   let discountAmount = 0
 
@@ -36,18 +55,18 @@ export async function createOrder(payload: CreateOrderPayload): Promise<OrderCom
     const code = await getDiscountByCode(payload.discount_code)
     if (code && code.active && (!code.max_uses || code.times_used < code.max_uses)) {
       discountCodeId = code.id
-      discountAmount = (unitPrice * quantity * code.discount_percentage) / 100
+      discountAmount = (grossAmount * code.discount_percentage) / 100
     }
   }
 
-  const finalAmount = unitPrice * quantity - discountAmount
+  const finalAmount = grossAmount - discountAmount
 
-  // 4. Crear pedido
+  // 6. Crear pedido (usa variant_id del primer item para compatibilidad con esquema existente)
   return repo.createOrder({
     customer_id: customer.id,
-    variant_id: payload.variant_id,
-    quantity,
-    unit_price: unitPrice,
+    variant_id: rawItems[0].variant_id,
+    quantity: rawItems.reduce((s, i) => s + i.quantity, 0),
+    unit_price: orderItems[0].unit_price,
     discount_code_id: discountCodeId,
     discount_amount: discountAmount,
     final_amount: finalAmount,
@@ -57,7 +76,7 @@ export async function createOrder(payload: CreateOrderPayload): Promise<OrderCom
     city: payload.city,
     province: payload.province,
     postal_code: payload.postal_code,
-  })
+  }, orderItems)
 }
 
 export async function updateOrderStatus(id: number, payload: UpdateOrderPayload): Promise<OrderComplete> {

@@ -2,8 +2,8 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { Navbar } from '@/frontend/components/layout/Navbar'
 import { Footer } from '@/frontend/components/layout/Footer'
-import { VariantSelector } from '@/frontend/components/features/products/VariantSelector'
-import { MessageCircle, ArrowLeft, Package, Shield, Ruler, Tag } from 'lucide-react'
+import { AddToCartSection } from '@/frontend/components/features/products/AddToCartSection'
+import { ArrowLeft, Package, Shield, Ruler, Tag } from 'lucide-react'
 import { getProduct } from '@/backend/features/products/services/product.service'
 
 const SHAPE_CONFIG = {
@@ -98,20 +98,11 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             </div>
 
             <div style={{ background: 'rgba(45,26,14,0.4)', border: '1px solid rgba(92,53,32,0.35)', borderRadius: '10px', padding: '1.5rem', marginBottom: '1.5rem' }}>
-              <VariantSelector variants={product.variants} includes={product.includes ?? undefined} />
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-              <a
-                href={`https://wa.me/5493513000000?text=Hola!%20Me%20interesa%20el%20fogonero%20${product.name}`}
-                target="_blank" rel="noopener noreferrer"
-                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', background: 'linear-gradient(135deg, #c4622d, #e8783a)', color: '#f5e6d3', padding: '1rem', borderRadius: '8px', textDecoration: 'none', fontWeight: 700, fontSize: '0.9rem', letterSpacing: '0.08em', textTransform: 'uppercase', boxShadow: '0 0 30px rgba(196,98,45,0.3)' }}
-              >
-                <MessageCircle size={18} /> Consultar por WhatsApp
-              </a>
-              <p style={{ color: '#3d2415', fontSize: '0.75rem', textAlign: 'center' }}>
-                Envíos a todo el país · Pago en cuotas disponible
-              </p>
+              <AddToCartSection
+                productInfo={{ id: product.id, name: product.name, slug: product.slug, shape: product.shape }}
+                variants={product.variants}
+                includes={product.includes ?? undefined}
+              />
             </div>
           </div>
         </div>
