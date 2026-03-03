@@ -1,7 +1,11 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import type { ProductWithVariants, UpdateProductPayload, UpdateVariantPayload } from '@/backend/features/products/models/product.model'
+import type {
+  ProductWithVariants,
+  CreateProductPayload, CreateVariantPayload,
+  UpdateProductPayload, UpdateVariantPayload,
+} from '@/backend/features/products/models/product.model'
 
 export function useProducts(admin = false) {
   const [products, setProducts] = useState<ProductWithVariants[]>([])
@@ -20,6 +24,28 @@ export function useProducts(admin = false) {
       setIsLoading(false)
     }
   }, [admin])
+
+  const createProduct = useCallback(async (payload: CreateProductPayload) => {
+    const res = await fetch('/api/products', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type: 'product', ...payload }),
+    })
+    const data = await res.json()
+    if (res.ok) await fetchProducts()
+    return { ok: res.ok, product: data.product, error: data.error }
+  }, [fetchProducts])
+
+  const createVariant = useCallback(async (payload: CreateVariantPayload) => {
+    const res = await fetch('/api/products', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type: 'variant', ...payload }),
+    })
+    const data = await res.json()
+    if (res.ok) await fetchProducts()
+    return { ok: res.ok, variant: data.variant, error: data.error }
+  }, [fetchProducts])
 
   const updateProduct = useCallback(async (id: string, payload: UpdateProductPayload) => {
     const res = await fetch('/api/products', {
@@ -43,5 +69,5 @@ export function useProducts(admin = false) {
 
   useEffect(() => { fetchProducts() }, [fetchProducts])
 
-  return { products, isLoading, refresh: fetchProducts, updateProduct, updateVariant }
+  return { products, isLoading, refresh: fetchProducts, createProduct, createVariant, updateProduct, updateVariant }
 }

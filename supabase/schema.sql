@@ -14,8 +14,12 @@ create table if not exists products (
   material    text default 'Chapa de 3,2 mm',
   includes    text[] default array['Parrilla', 'Estaca', 'Tapa'],
   active      boolean default true,
+  featured    boolean default false,             -- destacado en landing page
   created_at  timestamptz default now()
 );
+
+-- Migration: add featured if upgrading from an older schema
+-- alter table products add column if not exists featured boolean default false;
 
 -- ─────────────────────────────────────────────
 -- VARIANTES DE PRODUCTO (tamaño + color + precio)

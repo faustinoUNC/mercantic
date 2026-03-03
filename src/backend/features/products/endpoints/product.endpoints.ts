@@ -29,6 +29,24 @@ export async function handleGetBySlug(slug: string) {
   }
 }
 
+export async function handleCreateProduct(body: unknown) {
+  try {
+    const product = await service.createProduct(body as any)
+    return NextResponse.json({ product }, { status: 201 })
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+}
+
+export async function handleCreateVariant(body: unknown) {
+  try {
+    const variant = await service.createVariant(body as any)
+    return NextResponse.json({ variant }, { status: 201 })
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+}
+
 export async function handleUpdateProduct(id: string, body: unknown) {
   try {
     const product = await service.updateProduct(id, body as any)

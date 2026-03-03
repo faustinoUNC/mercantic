@@ -8,7 +8,7 @@ export interface ProductVariant {
   size: ProductSize
   color: ProductColor
   price: number
-  sale_price: number | null   // null = no offer active
+  sale_price: number | null
   stock: number
   active: boolean
   created_at: string
@@ -23,12 +23,32 @@ export interface Product {
   material: string | null
   includes: string[]
   active: boolean
+  featured: boolean
   created_at: string
   variants?: ProductVariant[]
 }
 
 export interface ProductWithVariants extends Product {
   variants: ProductVariant[]
+}
+
+export interface CreateProductPayload {
+  name: string
+  slug: string
+  shape: ProductShape
+  description?: string
+  material?: string
+  includes?: string[]
+  featured?: boolean
+}
+
+export interface CreateVariantPayload {
+  product_id: string
+  size: ProductSize
+  color: ProductColor
+  price: number
+  sale_price?: number | null
+  stock?: number
 }
 
 export interface UpdateVariantPayload {
@@ -43,4 +63,5 @@ export interface UpdateProductPayload {
   material?: string
   includes?: string[]
   active?: boolean
+  featured?: boolean
 }

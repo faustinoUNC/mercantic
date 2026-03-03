@@ -1,71 +1,66 @@
 'use client'
 
-import { useState } from 'react'
-
-const SIZES = ['1.25m', '1.50m'] as const
-const COLORS = ['negro', 'oxido'] as const
-
-const PRICES: Record<string, number> = {
-  '1.25m': 1287000,
-  '1.50m': 1405000,
-}
+import { useState, useEffect } from 'react'
+import type { ProductVariant } from '@/backend/features/products/models/product.model'
 
 const COLOR_LABELS: Record<string, string> = { negro: 'Negro', oxido: 'Óxido' }
-const COLOR_SWATCHES: Record<string, string> = {
-  negro: '#1a1a1a',
-  oxido: '#8B4513',
-}
+const COLOR_SWATCHES: Record<string, string> = { negro: '#1a1a1a', oxido: '#8B4513' }
 
 interface VariantSelectorProps {
-  onVariantChange?: (size: string, color: string, price: number) => void
+  variants: ProductVariant[]
+  includes?: string[]
+  onVariantChange?: (variant: ProductVariant) => void
 }
 
-export function VariantSelector({ onVariantChange }: VariantSelectorProps) {
-  const [selectedSize, setSelectedSize] = useState<string>('1.25m')
-  const [selectedColor, setSelectedColor] = useState<string>('negro')
+export function VariantSelector({ variants, includes, onVariantChange }: VariantSelectorProps) {
+  const activeVariants = variants.filter(v => v.active)
+  const sizes = [...new Set(activeVariants.map(v => v.size))].sort()
+  const [selectedSize, setSelectedSize] = useState(sizes[0] ?? '1.25m')
 
-  const price = PRICES[selectedSize]
+  const colorsForSize = activeVariants.filter(v => v.size === selectedSize).map(v => v.color)
+  const [selectedColor, setSelectedColor] = useState(colorsForSize[0] ?? 'negro')
 
-  const handleSizeChange = (size: string) => {
-    setSelectedSize(size)
-    onVariantChange?.(size, selectedColor, PRICES[size])
-  }
+  // Reset color when size changes if current color not available
+  useEffect(() => {
+    if (!colorsForSize.includes(selectedColor)) {
+      setSelectedColor(colorsForSize[0])
+    }
+  }, [selectedSize]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const handleColorChange = (color: string) => {
-    setSelectedColor(color)
-    onVariantChange?.(selectedSize, color, price)
-  }
+  const selectedVariant = activeVariants.find(v => v.size === selectedSize && v.color === selectedColor)
+
+  useEffect(() => {
+    if (selectedVariant) onVariantChange?.(selectedVariant)
+  }, [selectedVariant]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const hasSale = selectedVariant?.sale_price != null
+  const displayPrice = selectedVariant?.sale_price ?? selectedVariant?.price ?? 0
+  const originalPrice = selectedVariant?.price ?? 0
+  const discountPct = hasSale ? Math.round((1 - displayPrice / originalPrice) * 100) : 0
+
+  const includesList = includes?.length ? includes : ['Parrilla', 'Estaca', 'Tapa']
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
       {/* Size selector */}
       <div>
         <label style={{
-          display: 'block',
-          color: '#7a5c44',
-          fontSize: '0.7rem',
-          letterSpacing: '0.2em',
-          textTransform: 'uppercase',
-          marginBottom: '0.75rem',
-          fontWeight: 600,
+          display: 'block', color: '#7a5c44', fontSize: '0.7rem',
+          letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: '0.75rem', fontWeight: 600,
         }}>
           Tamaño
         </label>
-        <div style={{ display: 'flex', gap: '0.75rem' }}>
-          {SIZES.map((size) => (
+        <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+          {sizes.map(size => (
             <button
               key={size}
-              onClick={() => handleSizeChange(size)}
+              onClick={() => setSelectedSize(size)}
               style={{
-                flex: 1,
+                flex: 1, minWidth: '80px',
                 padding: '0.75rem 1rem',
                 borderRadius: '6px',
-                border: selectedSize === size
-                  ? '2px solid #c4622d'
-                  : '1px solid rgba(92, 53, 32, 0.4)',
-                background: selectedSize === size
-                  ? 'rgba(196, 98, 45, 0.12)'
-                  : 'rgba(45, 26, 14, 0.5)',
+                border: selectedSize === size ? '2px solid #c4622d' : '1px solid rgba(92, 53, 32, 0.4)',
+                background: selectedSize === size ? 'rgba(196, 98, 45, 0.12)' : 'rgba(45, 26, 14, 0.5)',
                 color: selectedSize === size ? '#f5e6d3' : '#7a5c44',
                 fontSize: '0.9rem',
                 fontWeight: selectedSize === size ? 700 : 400,
@@ -83,29 +78,21 @@ export function VariantSelector({ onVariantChange }: VariantSelectorProps) {
       {/* Color selector */}
       <div>
         <label style={{
-          display: 'block',
-          color: '#7a5c44',
-          fontSize: '0.7rem',
-          letterSpacing: '0.2em',
-          textTransform: 'uppercase',
-          marginBottom: '0.75rem',
-          fontWeight: 600,
+          display: 'block', color: '#7a5c44', fontSize: '0.7rem',
+          letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: '0.75rem', fontWeight: 600,
         }}>
-          Color — <span style={{ color: '#c4a882' }}>{COLOR_LABELS[selectedColor]}</span>
+          Color — <span style={{ color: '#c4a882' }}>{COLOR_LABELS[selectedColor] ?? selectedColor}</span>
         </label>
         <div style={{ display: 'flex', gap: '0.75rem' }}>
-          {COLORS.map((color) => (
+          {colorsForSize.map(color => (
             <button
               key={color}
-              onClick={() => handleColorChange(color)}
-              title={COLOR_LABELS[color]}
+              onClick={() => setSelectedColor(color)}
+              title={COLOR_LABELS[color] ?? color}
               style={{
-                width: '48px', height: '48px',
-                borderRadius: '50%',
-                border: selectedColor === color
-                  ? '3px solid #c4622d'
-                  : '2px solid rgba(92, 53, 32, 0.4)',
-                background: COLOR_SWATCHES[color],
+                width: '48px', height: '48px', borderRadius: '50%',
+                border: selectedColor === color ? '3px solid #c4622d' : '2px solid rgba(92, 53, 32, 0.4)',
+                background: COLOR_SWATCHES[color] ?? '#888',
                 cursor: 'pointer',
                 transition: 'all 0.2s ease',
                 outline: selectedColor === color ? '2px solid rgba(196, 98, 45, 0.3)' : 'none',
@@ -116,8 +103,7 @@ export function VariantSelector({ onVariantChange }: VariantSelectorProps) {
             >
               {color === 'oxido' && (
                 <div style={{
-                  position: 'absolute', inset: 4,
-                  borderRadius: '50%',
+                  position: 'absolute', inset: 4, borderRadius: '50%',
                   background: 'repeating-linear-gradient(45deg, #8B4513 0px, #A0522D 4px, #6B3410 8px)',
                 }} />
               )}
@@ -135,28 +121,44 @@ export function VariantSelector({ onVariantChange }: VariantSelectorProps) {
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
+        flexWrap: 'wrap',
+        gap: '0.75rem',
       }}>
         <div>
           <div style={{ color: '#7a5c44', fontSize: '0.65rem', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: '2px' }}>
             Precio final
           </div>
-          <div style={{
-            fontFamily: 'var(--font-playfair), Georgia, serif',
-            fontSize: '1.75rem',
-            fontWeight: 800,
-            background: 'linear-gradient(135deg, #e8783a, #d4a55a)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            backgroundClip: 'text',
-          }}>
-            ${price.toLocaleString('es-AR')}
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem' }}>
+            <div style={{
+              fontFamily: 'var(--font-playfair), Georgia, serif',
+              fontSize: '1.75rem', fontWeight: 800,
+              background: 'linear-gradient(135deg, #e8783a, #d4a55a)',
+              WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text',
+            }}>
+              ${displayPrice.toLocaleString('es-AR')}
+            </div>
+            {hasSale && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <span style={{ color: '#5c3520', fontSize: '0.9rem', textDecoration: 'line-through' }}>
+                  ${originalPrice.toLocaleString('es-AR')}
+                </span>
+                <span style={{
+                  background: '#ef4444', color: 'white',
+                  fontSize: '0.65rem', fontWeight: 700, padding: '1px 5px', borderRadius: '4px',
+                }}>
+                  -{discountPct}%
+                </span>
+              </div>
+            )}
           </div>
           <div style={{ color: '#5c3520', fontSize: '0.75rem', marginTop: '2px' }}>ARS · Transferencia / Efectivo</div>
         </div>
         <div style={{ textAlign: 'right' }}>
           <div style={{ color: '#5c3520', fontSize: '0.75rem' }}>{selectedSize}</div>
-          <div style={{ color: '#5c3520', fontSize: '0.75rem' }}>{COLOR_LABELS[selectedColor]}</div>
-          <div style={{ color: '#5c3520', fontSize: '0.7rem', marginTop: '4px' }}>Incluye parrilla + estaca + tapa</div>
+          <div style={{ color: '#5c3520', fontSize: '0.75rem' }}>{COLOR_LABELS[selectedColor] ?? selectedColor}</div>
+          <div style={{ color: '#5c3520', fontSize: '0.7rem', marginTop: '4px' }}>
+            Incluye: {includesList.join(' + ')}
+          </div>
         </div>
       </div>
     </div>
