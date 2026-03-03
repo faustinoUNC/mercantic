@@ -145,8 +145,9 @@ export function Hero() {
             fontSize: 'clamp(3rem, 10vw, 8rem)',
             fontWeight: 900,
             lineHeight: 1.0,
-            marginBottom: '1.25rem',
+            marginBottom: '2.5rem',
             letterSpacing: '-0.02em',
+            paddingBottom: '0.15em',
           }}
         >
           <span style={{
@@ -173,11 +174,61 @@ export function Hero() {
           </span>
         </motion.h1>
 
+        {/* Brand pillars strip */}
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.65 }}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 0,
+            marginBottom: '2.25rem',
+            overflow: 'hidden',
+          }}
+        >
+          <div style={{ flex: 1, height: '1px', background: 'linear-gradient(to right, transparent, rgba(196,98,45,0.4))' }} />
+          <div className="pillars-row" style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0',
+            flexWrap: 'wrap',
+            justifyContent: 'center',
+            padding: '0 1rem',
+          }}>
+            {[
+              'TRADICIÓN QUE ARDE 🔥',
+              'Cada fogonero, un sello de calidad artesanal',
+              'Hecho a mano, controlado por pasión',
+              'De nuestro taller a tu hogar',
+            ].map((phrase, i) => (
+              <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.6rem' }}>
+                <span style={{
+                  color: i === 0 ? '#e8783a' : '#7a5c44',
+                  fontSize: 'clamp(0.6rem, 1.5vw, 0.7rem)',
+                  letterSpacing: i === 0 ? '0.18em' : '0.1em',
+                  textTransform: 'uppercase',
+                  fontWeight: i === 0 ? 700 : 500,
+                  whiteSpace: 'nowrap',
+                  padding: '0.3rem 0.6rem',
+                }}>
+                  {phrase}
+                </span>
+                {i < 3 && (
+                  <span style={{ color: 'rgba(196,98,45,0.3)', fontSize: '0.7rem', flexShrink: 0 }}>·</span>
+                )}
+              </span>
+            ))}
+          </div>
+          <div style={{ flex: 1, height: '1px', background: 'linear-gradient(to left, transparent, rgba(196,98,45,0.4))' }} />
+        </motion.div>
+
         {/* Subheading */}
         <motion.p
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.7 }}
+          transition={{ duration: 0.7, delay: 0.8 }}
           style={{
             color: '#c4a882',
             fontSize: 'clamp(0.95rem, 2.5vw, 1.15rem)',
@@ -290,6 +341,7 @@ export function Hero() {
           }
           .eyebrow-line { display: none; }
           .scroll-hint  { display: none; }
+          .pillars-row span { white-space: normal !important; text-align: center; }
         }
         @media (max-width: 380px) {
           .hero-ctas { flex-direction: column; }
