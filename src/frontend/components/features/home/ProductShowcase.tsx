@@ -82,7 +82,19 @@ function ProductCard({ product, index }: { product: ProductWithVariants; index: 
         transform: hovered ? 'translateY(-6px)' : 'translateY(0)',
       }}
     >
-      <FogoneroShape shape={product.shape} glow={cfg.glow} />
+      {product.image_url ? (
+        <div style={{ position: 'relative', width: '100%', aspectRatio: '4/3', overflow: 'hidden' }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={product.image_url}
+            alt={product.name}
+            style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+          />
+          <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(to bottom, transparent 50%, rgba(15,7,2,0.7) 100%)` }} />
+        </div>
+      ) : (
+        <FogoneroShape shape={product.shape} glow={cfg.glow} />
+      )}
       <div style={{ padding: 'clamp(1.25rem, 4vw, 1.75rem)' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem', flexWrap: 'wrap', gap: '0.5rem' }}>
           <h3 style={{ fontFamily: 'var(--font-playfair), Georgia, serif', fontSize: 'clamp(1.75rem, 5vw, 2.25rem)', fontWeight: 900, color: '#f5e6d3', margin: 0 }}>

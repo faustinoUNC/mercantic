@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/dialog'
 import {
   Package, Edit2, Save, X, Tag, Percent, ChevronDown, ChevronUp,
-  Plus, Star, Trash2, CircleCheck,
+  Plus, Star, Trash2, CircleCheck, ImagePlus, Loader2, Trash,
 } from 'lucide-react'
 import { useProducts } from '@/frontend/hooks/useProducts'
 import type {
@@ -39,6 +39,104 @@ function toSlug(s: string) {
     .replace(/[\u0300-\u036f]/g, '')
     .replace(/\s+/g, '-')
     .replace(/[^a-z0-9-]/g, '')
+}
+
+// ─── ImageUploader ────────────────────────────────────────────────────────────
+
+function ImageUploader({
+  productId,
+  currentUrl,
+  onUploaded,
+}: {
+  productId: string
+  currentUrl: string | null
+  onUploaded: (url: string | null) => void
+}) {
+  const [uploading, setUploading] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+  const [preview, setPreview] = useState<string | null>(currentUrl)
+  const [error, setError] = useState('')
+
+  async function handleFile(file: File) {
+    setError('')
+    setUploading(true)
+    const form = new FormData()
+    form.append('file', file)
+    const res = await fetch(`/api/products/${productId}/image`, { method: 'POST', body: form })
+    const data = await res.json()
+    setUploading(false)
+    if (!res.ok) { setError(data.error ?? 'Error al subir'); return }
+    setPreview(data.image_url)
+    onUploaded(data.image_url)
+  }
+
+  async function handleDelete() {
+    setDeleting(true)
+    await fetch(`/api/products/${productId}/image`, { method: 'DELETE' })
+    setDeleting(false)
+    setPreview(null)
+    onUploaded(null)
+  }
+
+  return (
+    <div className="space-y-3 py-3">
+      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+        Imagen del producto
+      </p>
+
+      {preview ? (
+        <div className="relative inline-block">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={preview}
+            alt="Imagen del producto"
+            className="h-40 w-40 object-cover rounded-lg border"
+          />
+          <div className="absolute top-1 right-1 flex gap-1">
+            {/* Replace */}
+            <label className="cursor-pointer bg-background/90 hover:bg-background border rounded p-1 shadow-sm transition-colors" title="Cambiar imagen">
+              <ImagePlus className="w-3.5 h-3.5" />
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                className="sr-only"
+                onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f) }}
+              />
+            </label>
+            {/* Delete */}
+            <button
+              onClick={handleDelete}
+              disabled={deleting}
+              className="bg-background/90 hover:bg-destructive hover:text-destructive-foreground border rounded p-1 shadow-sm transition-colors"
+              title="Eliminar imagen"
+            >
+              {deleting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash className="w-3.5 h-3.5" />}
+            </button>
+          </div>
+          {uploading && (
+            <div className="absolute inset-0 bg-background/70 flex items-center justify-center rounded-lg">
+              <Loader2 className="w-6 h-6 animate-spin text-primary" />
+            </div>
+          )}
+        </div>
+      ) : (
+        <label className={`flex flex-col items-center justify-center w-40 h-40 rounded-lg border-2 border-dashed cursor-pointer transition-colors ${uploading ? 'opacity-50 pointer-events-none' : 'hover:border-primary hover:bg-muted/40'}`}>
+          {uploading
+            ? <Loader2 className="w-7 h-7 animate-spin text-muted-foreground" />
+            : <><ImagePlus className="w-7 h-7 text-muted-foreground mb-2" /><span className="text-xs text-muted-foreground text-center px-2">Subir imagen<br/>JPG, PNG, WEBP · máx 5 MB</span></>
+          }
+          <input
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            className="sr-only"
+            onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f) }}
+          />
+        </label>
+      )}
+
+      {error && <p className="text-xs text-destructive">{error}</p>}
+    </div>
+  )
 }
 
 // ─── VariantRow ───────────────────────────────────────────────────────────────
@@ -343,6 +441,7 @@ function ProductCard({
   const [editingInfo, setEditingInfo] = useState(false)
   const [addingVariant, setAddingVariant] = useState(false)
   const [variantsOpen, setVariantsOpen] = useState(true)
+  const [imageUrl, setImageUrl] = useState<string | null>(product.image_url ?? null)
 
   const activeSales = product.variants.filter(v => v.sale_price != null).length
 
@@ -362,6 +461,11 @@ function ProductCard({
     <Card className={product.featured ? 'border-amber-500/50 bg-amber-500/5' : ''}>
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between gap-3">
+          {/* Thumbnail */}
+          {imageUrl && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={imageUrl} alt={product.name} className="w-16 h-16 object-cover rounded-lg border flex-shrink-0" />
+          )}
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1 flex-wrap">
               <CardTitle className="text-lg">{product.name}</CardTitle>
@@ -426,6 +530,12 @@ function ProductCard({
           <>
             <Separator className="mt-2" />
             <ProductInfoEditor product={product} onSave={onUpdateProduct} onClose={() => setEditingInfo(false)} />
+            <Separator />
+            <ImageUploader
+              productId={product.id}
+              currentUrl={imageUrl}
+              onUploaded={setImageUrl}
+            />
           </>
         )}
       </CardHeader>

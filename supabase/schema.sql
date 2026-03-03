@@ -107,6 +107,12 @@ create index if not exists idx_orders_created_at      on orders(created_at desc)
 create index if not exists idx_variants_product_id    on product_variants(product_id);
 
 -- ─────────────────────────────────────────────
+-- IMÁGENES DE PRODUCTOS (migration)
+-- ─────────────────────────────────────────────
+-- alter table products add column if not exists image_url text;
+-- Crear bucket en Supabase Storage: product-images (público, 5 MB, jpg/png/webp)
+
+-- ─────────────────────────────────────────────
 -- ORDER ITEMS (migration — carrito multi-item)
 -- ─────────────────────────────────────────────
 create table if not exists order_items (
