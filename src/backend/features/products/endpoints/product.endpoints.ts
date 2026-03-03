@@ -64,3 +64,12 @@ export async function handleUpdateVariant(id: string, body: unknown) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 }
+
+export async function handleDeleteVariant(id: string) {
+  try {
+    await service.deleteVariant(id)
+    return NextResponse.json({ success: true })
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+}

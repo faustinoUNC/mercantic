@@ -32,3 +32,7 @@ export async function updateProduct(id: string, payload: UpdateProductPayload) {
 export async function updateVariant(id: string, payload: UpdateVariantPayload) {
   return repo.updateVariant(id, payload)
 }
+
+export async function deleteVariant(id: string) {
+  return repo.deleteVariant(id)
+}

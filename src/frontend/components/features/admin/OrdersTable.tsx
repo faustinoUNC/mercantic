@@ -222,7 +222,6 @@ export function OrdersTable() {
                       <Select
                         value={order.delivery_status}
                         onValueChange={v => updateOrder(order.id, { delivery_status: v as any })}
-                        disabled={order.payment_status !== 'paid'}
                       >
                         <SelectTrigger className="w-[130px]"><SelectValue /></SelectTrigger>
                         <SelectContent>
@@ -392,7 +391,6 @@ export function OrdersTable() {
                           await updateOrder(selected.id, { delivery_status: v as any })
                           setSelected(prev => prev ? { ...prev, delivery_status: v as any } : null)
                         }}
-                        disabled={selected.payment_status !== 'paid'}
                       >
                         <SelectTrigger className="w-[140px]"><SelectValue /></SelectTrigger>
                         <SelectContent>

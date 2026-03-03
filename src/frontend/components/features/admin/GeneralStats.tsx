@@ -1,10 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Tooltip as InfoTooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
-import { TrendingUp, Package, Clock, CheckCircle, ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react'
+import { TrendingUp, Package, Clock, CheckCircle, ChevronLeft, ChevronRight, RefreshCw, DatabaseZap } from 'lucide-react'
 import {
   Chart as ChartJS,
   CategoryScale, LinearScale, BarElement, LineElement, PointElement,
@@ -41,12 +41,7 @@ const BRAND = {
 // ─── KPI Card ─────────────────────────────────────────────────────────────────
 
 function KpiCard({
-  label,
-  value,
-  sub,
-  icon: Icon,
-  tip,
-  highlight,
+  label, value, sub, icon: Icon, tip, highlight,
 }: {
   label: string
   value: string | number
@@ -79,14 +74,36 @@ function KpiCard({
 export function GeneralStats() {
   const [viewMode, setViewMode] = useState<ViewMode>('days')
   const [offset, setOffset] = useState(0)
-  const { stats, isLoading, refresh } = useAnalytics(viewMode, offset)
+  const [seeding, setSeeding] = useState(false)
+  const [seedMsg, setSeedMsg] = useState('')
+  const { stats, isLoading, isRefreshing, refresh } = useAnalytics(viewMode, offset)
 
   const handleViewChange = (mode: ViewMode) => {
     setViewMode(mode)
     setOffset(0)
   }
 
-  if (isLoading || !stats) {
+  const handleSeed = async () => {
+    setSeeding(true)
+    setSeedMsg('')
+    try {
+      const res = await fetch('/api/admin/seed', { method: 'POST' })
+      const data = await res.json()
+      if (res.ok) {
+        setSeedMsg(`✓ ${data.count} pedidos de prueba creados`)
+        refresh()
+      } else {
+        setSeedMsg(`Error: ${data.error}`)
+      }
+    } catch {
+      setSeedMsg('Error de conexión')
+    } finally {
+      setSeeding(false)
+    }
+  }
+
+  // Show skeleton only on first load, not on subsequent refreshes
+  if (isLoading && !stats) {
     return (
       <div className="space-y-4">
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -100,10 +117,9 @@ export function GeneralStats() {
     )
   }
 
-  const { summary, daily_sales, by_product, payment_status, delivery_status } = stats
+  const { summary, daily_sales, by_product, payment_status, delivery_status, by_province } = stats!
 
   // ── Bar chart ──────────────────────────────────────────────────────────────
-  const maxRevenue = Math.max(...daily_sales.map(d => d.revenue), 1)
   const barData = {
     labels: daily_sales.map(d => d.date),
     datasets: [
@@ -149,22 +165,14 @@ export function GeneralStats() {
       },
     },
     scales: {
-      x: {
-        grid: { display: false },
-        ticks: { font: { size: 11 }, maxRotation: 45 },
-      },
+      x: { grid: { display: false }, ticks: { font: { size: 11 }, maxRotation: 45 } },
       y: {
-        type: 'linear' as const,
-        position: 'left' as const,
-        beginAtZero: true,
+        type: 'linear' as const, position: 'left' as const, beginAtZero: true,
         grid: { color: 'rgba(128,128,128,0.1)' },
         ticks: { precision: 0, font: { size: 11 } },
-        title: { display: false },
       },
       y1: {
-        type: 'linear' as const,
-        position: 'right' as const,
-        beginAtZero: true,
+        type: 'linear' as const, position: 'right' as const, beginAtZero: true,
         grid: { drawOnChartArea: false },
         ticks: {
           font: { size: 11 },
@@ -176,6 +184,38 @@ export function GeneralStats() {
           },
         },
       },
+    },
+  }
+
+  // ── Province bar chart ─────────────────────────────────────────────────────
+  const provinceBarData = {
+    labels: by_province.map(p => p.province),
+    datasets: [{
+      label: 'Pedidos',
+      data: by_province.map(p => p.total_orders),
+      backgroundColor: by_province.map((_, i) =>
+        [BRAND.orange, BRAND.gold, BRAND.fire, BRAND.muted, BRAND.gray][i % 5] + 'cc'
+      ),
+      borderWidth: 0,
+      borderRadius: 5,
+    }],
+  }
+
+  const provinceBarOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    indexAxis: 'y' as const,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: (ctx: any) => ` ${ctx.raw} pedido${ctx.raw !== 1 ? 's' : ''}`,
+        },
+      },
+    },
+    scales: {
+      x: { beginAtZero: true, ticks: { precision: 0, font: { size: 11 } }, grid: { color: 'rgba(128,128,128,0.1)' } },
+      y: { ticks: { font: { size: 11 } }, grid: { display: false } },
     },
   }
 
@@ -218,35 +258,10 @@ export function GeneralStats() {
     <div className="space-y-6">
       {/* KPI cards */}
       <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
-        <KpiCard
-          label="Total Pedidos"
-          value={summary.total_orders}
-          sub={`${summary.paid_orders} pagados`}
-          icon={Package}
-          tip="Total de pedidos registrados en el período seleccionado"
-        />
-        <KpiCard
-          label="Ingresos"
-          value={formatPrice(summary.total_revenue)}
-          sub="pagos aprobados"
-          icon={TrendingUp}
-          tip="Suma de montos finales de pedidos pagados"
-          highlight
-        />
-        <KpiCard
-          label="Ticket Promedio"
-          value={formatPrice(summary.average_order_value)}
-          sub="por pedido pagado"
-          icon={CheckCircle}
-          tip="Monto final promedio de pedidos pagados"
-        />
-        <KpiCard
-          label="Por Despachar"
-          value={summary.pending_delivery}
-          sub="envíos pendientes"
-          icon={Clock}
-          tip="Pedidos pagados que aún no fueron enviados"
-        />
+        <KpiCard label="Total Pedidos" value={summary.total_orders} sub={`${summary.paid_orders} pagados`} icon={Package} tip="Total de pedidos registrados" />
+        <KpiCard label="Ingresos" value={formatPrice(summary.total_revenue)} sub="pagos aprobados" icon={TrendingUp} tip="Suma de montos finales de pedidos pagados" highlight />
+        <KpiCard label="Ticket Promedio" value={formatPrice(summary.average_order_value)} sub="por pedido pagado" icon={CheckCircle} tip="Monto final promedio de pedidos pagados" />
+        <KpiCard label="Por Despachar" value={summary.pending_delivery} sub="envíos pendientes" icon={Clock} tip="Pedidos pagados que aún no fueron enviados" />
       </div>
 
       {/* Bar chart */}
@@ -255,7 +270,7 @@ export function GeneralStats() {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <CardTitle className="text-base">Pedidos e Ingresos</CardTitle>
             <div className="flex items-center gap-2 flex-wrap">
-              {/* View mode */}
+              {/* View mode — no page reload, just state update */}
               <div className="flex rounded-md border overflow-hidden text-xs">
                 {(Object.keys(VIEW_LABELS) as ViewMode[]).map(mode => (
                   <button
@@ -284,21 +299,29 @@ export function GeneralStats() {
                 </Button>
               </div>
               <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => refresh()} title="Actualizar">
-                <RefreshCw className="w-3.5 h-3.5" />
+                <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
               </Button>
             </div>
           </div>
         </CardHeader>
         <CardContent>
-          {daily_sales.length === 0 ? (
-            <div className="h-64 flex items-center justify-center text-muted-foreground text-sm">
-              Sin datos en este período
-            </div>
-          ) : (
-            <div className="h-64 sm:h-72">
-              <Bar data={barData} options={barOptions} />
-            </div>
-          )}
+          {/* Overlay while refreshing so chart doesn't unmount */}
+          <div className="relative">
+            {isRefreshing && (
+              <div className="absolute inset-0 bg-background/50 z-10 flex items-center justify-center rounded-lg">
+                <RefreshCw className="w-5 h-5 animate-spin text-muted-foreground" />
+              </div>
+            )}
+            {daily_sales.length === 0 ? (
+              <div className="h-64 flex items-center justify-center text-muted-foreground text-sm">
+                Sin datos en este período
+              </div>
+            ) : (
+              <div className="h-64 sm:h-72">
+                <Bar data={barData} options={barOptions} />
+              </div>
+            )}
+          </div>
         </CardContent>
       </Card>
 
@@ -313,9 +336,7 @@ export function GeneralStats() {
             {payment_status.paid + payment_status.pending + payment_status.failed + payment_status.refunded === 0 ? (
               <div className="h-44 flex items-center justify-center text-sm text-muted-foreground">Sin datos</div>
             ) : (
-              <div className="h-44">
-                <Doughnut data={paymentData} options={doughnutOptions} />
-              </div>
+              <div className="h-44"><Doughnut data={paymentData} options={doughnutOptions} /></div>
             )}
             <div className="grid grid-cols-2 gap-x-4 gap-y-1 mt-3 text-xs">
               {[
@@ -326,8 +347,7 @@ export function GeneralStats() {
               ].map(({ label, value, color }) => (
                 <div key={label} className="flex items-center justify-between">
                   <span className="flex items-center gap-1.5 text-muted-foreground">
-                    <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: color }} />
-                    {label}
+                    <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: color }} />{label}
                   </span>
                   <span className="font-medium tabular-nums">{value}</span>
                 </div>
@@ -345,9 +365,7 @@ export function GeneralStats() {
             {delivery_status.pending + delivery_status.shipped + delivery_status.delivered === 0 ? (
               <div className="h-44 flex items-center justify-center text-sm text-muted-foreground">Sin datos</div>
             ) : (
-              <div className="h-44">
-                <Doughnut data={deliveryData} options={doughnutOptions} />
-              </div>
+              <div className="h-44"><Doughnut data={deliveryData} options={doughnutOptions} /></div>
             )}
             <div className="space-y-1 mt-3 text-xs">
               {[
@@ -357,8 +375,7 @@ export function GeneralStats() {
               ].map(({ label, value, color }) => (
                 <div key={label} className="flex items-center justify-between">
                   <span className="flex items-center gap-1.5 text-muted-foreground">
-                    <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: color }} />
-                    {label}
+                    <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: color }} />{label}
                   </span>
                   <span className="font-medium tabular-nums">{value}</span>
                 </div>
@@ -379,8 +396,7 @@ export function GeneralStats() {
               <div className="space-y-4 pt-2">
                 {by_product.map((p, idx) => {
                   const pct = Math.round(p.total_orders / maxOrders * 100)
-                  const colors = [BRAND.orange, BRAND.gold, BRAND.fire]
-                  const color = colors[idx % colors.length]
+                  const color = [BRAND.orange, BRAND.gold, BRAND.fire][idx % 3]
                   return (
                     <div key={p.slug}>
                       <div className="flex justify-between items-baseline mb-1.5">
@@ -388,10 +404,7 @@ export function GeneralStats() {
                         <span className="text-xs text-muted-foreground">{p.total_orders} pedido{p.total_orders !== 1 ? 's' : ''}</span>
                       </div>
                       <div className="h-2 bg-muted rounded-full overflow-hidden">
-                        <div
-                          className="h-full rounded-full transition-all duration-500"
-                          style={{ width: `${pct}%`, background: color }}
-                        />
+                        <div className="h-full rounded-full transition-all duration-500" style={{ width: `${pct}%`, background: color }} />
                       </div>
                       <p className="text-xs text-muted-foreground mt-1">{formatPrice(p.revenue)}</p>
                     </div>
@@ -402,6 +415,43 @@ export function GeneralStats() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Province chart */}
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Pedidos por Provincia</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {by_province.length === 0 ? (
+            <div className="h-40 flex items-center justify-center text-sm text-muted-foreground">Sin datos de provincia</div>
+          ) : (
+            <div style={{ height: `${Math.max(160, by_province.length * 36)}px` }}>
+              <Bar data={provinceBarData} options={provinceBarOptions} />
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Seed test data */}
+      <Card className="border-dashed">
+        <CardContent className="flex flex-col sm:flex-row items-start sm:items-center gap-3 py-4">
+          <div className="flex-1">
+            <p className="text-sm font-medium">Datos de prueba</p>
+            <p className="text-xs text-muted-foreground">Genera 40 pedidos ficticios para ver los gráficos con datos reales.</p>
+            {seedMsg && <p className={`text-xs mt-1 ${seedMsg.startsWith('✓') ? 'text-green-600' : 'text-destructive'}`}>{seedMsg}</p>}
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-2 shrink-0"
+            onClick={handleSeed}
+            disabled={seeding}
+          >
+            <DatabaseZap className="w-4 h-4" />
+            {seeding ? 'Generando…' : 'Cargar datos de prueba'}
+          </Button>
+        </CardContent>
+      </Card>
     </div>
   )
 }

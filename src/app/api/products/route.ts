@@ -2,7 +2,7 @@ import { NextRequest } from 'next/server'
 import {
   handleList, handleListAdmin,
   handleCreateProduct, handleCreateVariant,
-  handleUpdateProduct, handleUpdateVariant,
+  handleUpdateProduct, handleUpdateVariant, handleDeleteVariant,
 } from '@/backend/features/products/endpoints/product.endpoints'
 
 export async function GET(req: NextRequest) {
@@ -22,4 +22,11 @@ export async function PATCH(req: NextRequest) {
   const { type, id, ...payload } = body
   if (type === 'variant') return handleUpdateVariant(id, payload)
   return handleUpdateProduct(id, payload)
+}
+
+export async function DELETE(req: NextRequest) {
+  const body = await req.json()
+  const { type, id } = body
+  if (type === 'variant') return handleDeleteVariant(id)
+  return new Response(JSON.stringify({ error: 'Unsupported type' }), { status: 400 })
 }

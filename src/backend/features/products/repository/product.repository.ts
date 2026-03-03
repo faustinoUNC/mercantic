@@ -90,3 +90,9 @@ export async function updateVariant(id: string, payload: UpdateVariantPayload) {
   if (error) throw new Error(error.message)
   return data
 }
+
+export async function deleteVariant(id: string): Promise<void> {
+  const supabase = await createClient()
+  const { error } = await supabase.from('product_variants').delete().eq('id', id)
+  if (error) throw new Error(error.message)
+}

@@ -33,3 +33,14 @@ export async function getOrdersByProduct() {
   if (error) throw new Error(error.message)
   return data
 }
+
+export async function getOrdersByProvince() {
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from('orders')
+    .select('province, payment_status, final_amount')
+    .not('province', 'is', null)
+
+  if (error) throw new Error(error.message)
+  return data ?? []
+}

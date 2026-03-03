@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { ArrowRight, Circle, Square, Tag } from 'lucide-react'
+import { ArrowRight, Tag } from 'lucide-react'
 import { useProducts } from '@/frontend/hooks/useProducts'
 import type { ProductWithVariants } from '@/backend/features/products/models/product.model'
 
@@ -23,41 +23,6 @@ function getLowestPrice(product: ProductWithVariants) {
   return { from, original, hasSale }
 }
 
-function FogoneroShape({ shape, glow }: { shape: 'round' | 'square'; glow: string }) {
-  return (
-    <div style={{ position: 'relative', width: '100%', aspectRatio: '4/3', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-      <div style={{ position: 'absolute', inset: 0, background: `radial-gradient(ellipse at 50% 70%, ${glow} 0%, transparent 60%)` }} />
-      <div style={{
-        position: 'relative',
-        width: shape === 'round' ? '160px' : '180px',
-        height: shape === 'round' ? '160px' : '140px',
-        borderRadius: shape === 'round' ? '50%' : '12px',
-        background: 'radial-gradient(ellipse at 50% 40%, #5c3520 0%, #2d1a0e 40%, #1a0f07 100%)',
-        border: '2px solid rgba(196, 98, 45, 0.4)',
-        boxShadow: `inset 0 0 40px rgba(196, 98, 45, 0.15), 0 0 40px ${glow}, 0 0 80px rgba(196, 98, 45, 0.1)`,
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-      }}>
-        <div style={{
-          width: shape === 'round' ? '100px' : '120px', height: shape === 'round' ? '100px' : '90px',
-          borderRadius: shape === 'round' ? '50%' : '6px',
-          background: 'radial-gradient(ellipse at 50% 60%, rgba(245,158,11,0.3) 0%, rgba(196,98,45,0.15) 50%, transparent 70%)',
-          border: '1px solid rgba(196, 98, 45, 0.25)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-        }}>
-          <div style={{ width: '40px', height: '40px', borderRadius: shape === 'round' ? '50%' : '4px', background: 'radial-gradient(circle, rgba(245,158,11,0.6), rgba(232,120,58,0.3), transparent)', boxShadow: '0 0 20px rgba(245,158,11,0.4)' }} />
-        </div>
-        {[...Array(4)].map((_, i) => (
-          <div key={`h${i}`} style={{ position: 'absolute', left: '15%', right: '15%', top: `${25 + i * 17}%`, height: '1px', background: 'rgba(196, 98, 45, 0.2)' }} />
-        ))}
-        {[...Array(4)].map((_, i) => (
-          <div key={`v${i}`} style={{ position: 'absolute', top: '15%', bottom: '15%', left: `${25 + i * 17}%`, width: '1px', background: 'rgba(196, 98, 45, 0.2)' }} />
-        ))}
-      </div>
-      <div style={{ position: 'absolute', bottom: '8px', left: '50%', transform: 'translateX(-50%)', width: '6px', height: '40px', background: 'linear-gradient(to bottom, #5c3520, #2d1a0e)', borderRadius: '3px' }} />
-    </div>
-  )
-}
-
 function ProductCard({ product, index }: { product: ProductWithVariants; index: number }) {
   const [hovered, setHovered] = useState(false)
   const cfg = SHAPE_CONFIG[product.shape]
@@ -65,6 +30,11 @@ function ProductCard({ product, index }: { product: ProductWithVariants; index: 
   const sizes = [...new Set(product.variants.filter(v => v.active).map(v => v.size))]
   const colors = [...new Set(product.variants.filter(v => v.active).map(v => v.color))]
     .map(c => c === 'negro' ? 'Negro' : 'Óxido')
+
+  // Get images — support both image_urls array and legacy image_url
+  const images: string[] = (product as any).image_urls?.length
+    ? (product as any).image_urls
+    : product.image_url ? [product.image_url] : []
 
   return (
     <motion.div
@@ -80,28 +50,54 @@ function ProductCard({ product, index }: { product: ProductWithVariants; index: 
         borderRadius: '12px', overflow: 'hidden', transition: 'all 0.4s ease',
         boxShadow: hovered ? `0 0 60px ${cfg.glow}, 0 20px 60px rgba(0,0,0,0.6)` : '0 8px 40px rgba(0,0,0,0.4)',
         transform: hovered ? 'translateY(-6px)' : 'translateY(0)',
+        display: 'flex', flexDirection: 'column',
       }}
     >
-      {product.image_url ? (
-        <div style={{ position: 'relative', width: '100%', aspectRatio: '4/3', overflow: 'hidden' }}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={product.image_url}
-            alt={product.name}
-            style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-          />
-          <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(to bottom, transparent 50%, rgba(15,7,2,0.7) 100%)` }} />
-        </div>
-      ) : (
-        <FogoneroShape shape={product.shape} glow={cfg.glow} />
-      )}
-      <div style={{ padding: 'clamp(1.25rem, 4vw, 1.75rem)' }}>
+      {/* Image area */}
+      <div style={{ position: 'relative', width: '100%', aspectRatio: '4/3', overflow: 'hidden', flexShrink: 0 }}>
+        {images.length > 0 ? (
+          <>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={images[0]}
+              alt={product.name}
+              style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+            />
+            <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(to bottom, transparent 50%, rgba(15,7,2,0.7) 100%)` }} />
+          </>
+        ) : (
+          /* Simple branded placeholder — no shape illustrations */
+          <div style={{
+            width: '100%', height: '100%',
+            background: `radial-gradient(ellipse at 50% 70%, ${cfg.glow} 0%, rgba(15,7,2,0.95) 100%)`,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            <span style={{
+              fontFamily: 'var(--font-playfair), Georgia, serif',
+              fontSize: 'clamp(3rem, 8vw, 5rem)',
+              fontWeight: 900,
+              background: `linear-gradient(135deg, ${cfg.accent}, #d4a55a)`,
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text',
+              opacity: 0.35,
+              letterSpacing: '-0.02em',
+            }}>
+              {product.name}
+            </span>
+          </div>
+        )}
+      </div>
+
+      {/* Card body — grows to fill available height */}
+      <div style={{ padding: 'clamp(1.25rem, 4vw, 1.75rem)', display: 'flex', flexDirection: 'column', flexGrow: 1 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem', flexWrap: 'wrap', gap: '0.5rem' }}>
           <h3 style={{ fontFamily: 'var(--font-playfair), Georgia, serif', fontSize: 'clamp(1.75rem, 5vw, 2.25rem)', fontWeight: 900, color: '#f5e6d3', margin: 0 }}>
             {product.name}
           </h3>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(196, 98, 45, 0.12)', border: '1px solid rgba(196, 98, 45, 0.25)', padding: '0.3rem 0.75rem', borderRadius: '100px', color: '#c4a882', fontSize: '0.7rem', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
-            {product.shape === 'round' ? <><Circle size={10} style={{ color: '#e8783a' }} /> Redondo</> : <><Square size={10} style={{ color: '#d4a55a' }} /> Cuadrado</>}
+          {/* Shape label — text only, no icons */}
+          <div style={{ background: 'rgba(196, 98, 45, 0.12)', border: '1px solid rgba(196, 98, 45, 0.25)', padding: '0.3rem 0.75rem', borderRadius: '100px', color: '#c4a882', fontSize: '0.7rem', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+            {cfg.label}
           </div>
         </div>
 
@@ -143,16 +139,19 @@ function ProductCard({ product, index }: { product: ProductWithVariants; index: 
           </div>
         )}
 
-        <Link href={`/productos/${product.slug}`} style={{
-          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-          background: `linear-gradient(135deg, ${cfg.accent}33, ${cfg.accent}15)`,
-          border: `1px solid ${cfg.accent}60`, color: '#f5e6d3',
-          padding: '0.85rem', borderRadius: '6px', textDecoration: 'none',
-          fontWeight: 600, fontSize: '0.85rem', letterSpacing: '0.1em',
-          textTransform: 'uppercase', transition: 'all 0.3s ease', width: '100%',
-        }}>
-          Ver Detalle <ArrowRight size={14} />
-        </Link>
+        {/* CTA pushed to bottom */}
+        <div style={{ marginTop: 'auto' }}>
+          <Link href={`/productos/${product.slug}`} style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+            background: `linear-gradient(135deg, ${cfg.accent}33, ${cfg.accent}15)`,
+            border: `1px solid ${cfg.accent}60`, color: '#f5e6d3',
+            padding: '0.85rem', borderRadius: '6px', textDecoration: 'none',
+            fontWeight: 600, fontSize: '0.85rem', letterSpacing: '0.1em',
+            textTransform: 'uppercase', transition: 'all 0.3s ease', width: '100%',
+          }}>
+            Ver Detalle <ArrowRight size={14} />
+          </Link>
+        </div>
       </div>
     </motion.div>
   )
@@ -185,7 +184,7 @@ export function ProductShowcase() {
             {[0, 1].map(i => <div key={i} style={{ background: 'rgba(45,26,14,0.4)', borderRadius: '12px', height: '500px' }} />)}
           </div>
         ) : (
-          <div className="showcase-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(340px, 100%), 1fr))', gap: '1.5rem' }}>
+          <div className="showcase-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(340px, 100%), 1fr))', gap: '1.5rem', alignItems: 'stretch' }}>
             {displayed.map((p, i) => <ProductCard key={p.id} product={p} index={i} />)}
           </div>
         )}
@@ -200,6 +199,20 @@ export function ProductShowcase() {
               </div>
             ))}
             <span style={{ color: '#7a5c44', fontSize: '0.7rem', letterSpacing: '0.2em', textTransform: 'uppercase' }}>· Chapa 3,2mm</span>
+          </motion.div>
+        )}
+
+        {/* Ver todos los modelos */}
+        {!isLoading && (
+          <motion.div initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: 0.4 }} style={{ textAlign: 'center', marginTop: '2.5rem' }}>
+            <Link href="/productos" style={{
+              display: 'inline-flex', alignItems: 'center', gap: '8px',
+              color: '#c4622d', textDecoration: 'none',
+              fontSize: '0.85rem', letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 600,
+              borderBottom: '1px solid rgba(196,98,45,0.35)', paddingBottom: '2px',
+            }}>
+              Ver todos los modelos <ArrowRight size={14} />
+            </Link>
           </motion.div>
         )}
       </div>

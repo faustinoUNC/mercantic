@@ -6,6 +6,7 @@ import { es } from 'date-fns/locale'
 export async function getGeneralStats(viewMode: ViewMode = 'days', offset = 0): Promise<GeneralStats> {
   const allOrders = await repo.getOrdersSummary()
   const productOrders = await repo.getOrdersByProduct()
+  const provinceOrders = await repo.getOrdersByProvince()
 
   // Summary
   const paid = allOrders.filter(o => o.payment_status === 'paid')
@@ -83,7 +84,22 @@ export async function getGeneralStats(viewMode: ViewMode = 'days', offset = 0): 
     total_orders: v.total, paid_orders: v.paid, revenue: v.revenue,
   }))
 
-  return { summary, daily_sales, by_product, by_variant, payment_status, delivery_status }
+  // By province
+  const provinceMap = new Map<string, { total: number; revenue: number }>()
+  for (const order of provinceOrders as any[]) {
+    const prov = (order.province as string | null)?.trim()
+    if (!prov) continue
+    const existing = provinceMap.get(prov) ?? { total: 0, revenue: 0 }
+    existing.total++
+    if (order.payment_status === 'paid') existing.revenue += order.final_amount ?? 0
+    provinceMap.set(prov, existing)
+  }
+  const by_province = Array.from(provinceMap.entries())
+    .map(([province, v]) => ({ province, total_orders: v.total, revenue: v.revenue }))
+    .sort((a, b) => b.total_orders - a.total_orders)
+    .slice(0, 10)
+
+  return { summary, daily_sales, by_product, by_variant, by_province, payment_status, delivery_status }
 }
 
 async function getDailySalesByMode(viewMode: ViewMode, offset: number): Promise<DailySale[]> {

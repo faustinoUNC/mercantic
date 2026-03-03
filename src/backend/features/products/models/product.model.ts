@@ -25,6 +25,7 @@ export interface Product {
   active: boolean
   featured: boolean
   image_url: string | null
+  image_urls: string[]
   created_at: string
   variants?: ProductVariant[]
 }
@@ -66,4 +67,5 @@ export interface UpdateProductPayload {
   active?: boolean
   featured?: boolean
   image_url?: string | null
+  image_urls?: string[]
 }

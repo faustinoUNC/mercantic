@@ -257,7 +257,7 @@ export function Hero() {
             padding: '0 0.5rem',
           }}
         >
-          <Link href="/productos" style={{
+          <Link href="#modelos" style={{
             display: 'inline-flex',
             alignItems: 'center',
             justifyContent: 'center',

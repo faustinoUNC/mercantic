@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { Navbar } from '@/frontend/components/layout/Navbar'
 import { Footer } from '@/frontend/components/layout/Footer'
 import { AddToCartSection } from '@/frontend/components/features/products/AddToCartSection'
+import { ProductImageGallery } from '@/frontend/components/features/products/ProductImageGallery'
 import { ArrowLeft, Package, Shield, Ruler, Tag } from 'lucide-react'
 import { getProduct } from '@/backend/features/products/services/product.service'
 
@@ -20,6 +21,9 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
 
   const cfg = SHAPE_CONFIG[product.shape]
   const hasOffer = product.variants.some(v => v.active && v.sale_price != null)
+  const images: string[] = (product as any).image_urls?.length
+    ? (product as any).image_urls
+    : product.image_url ? [product.image_url] : []
 
   return (
     <div style={{ background: '#0f0702', minHeight: '100vh' }}>
@@ -40,38 +44,12 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             position: 'relative', overflow: 'hidden',
           }}>
-            {product.image_url ? (
-              /* Real product photo */
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={product.image_url}
-                alt={product.name}
-                style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', borderRadius: '14px' }}
-              />
-            ) : (
-              /* Placeholder illustration */
-              <>
-                {[300, 220, 140, 70].map((size, i) => (
-                  <div key={i} style={{ position: 'absolute', width: `${size}px`, height: `${size}px`, borderRadius: product.shape === 'round' ? '50%' : `${16 - i * 3}px`, border: `1px solid rgba(196, 98, 45, ${0.04 + i * 0.04})` }} />
-                ))}
-                <div style={{
-                  width: product.shape === 'round' ? '200px' : '230px',
-                  height: product.shape === 'round' ? '200px' : '190px',
-                  borderRadius: product.shape === 'round' ? '50%' : '16px',
-                  background: 'linear-gradient(145deg, #3d2415, #1a0f07)',
-                  border: `2px solid ${cfg.accent}50`,
-                  boxShadow: `0 0 60px ${cfg.accent}25, inset 0 0 40px rgba(196,98,45,0.08)`,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2,
-                }}>
-                  <div style={{ width: '55%', height: '55%', borderRadius: product.shape === 'round' ? '50%' : '8px', background: `radial-gradient(circle, ${cfg.accent}35, transparent 70%)` }} />
-                </div>
-                <div style={{ position: 'absolute', bottom: '1.5rem', left: '1.5rem' }}>
-                  <span style={{ fontFamily: 'var(--font-playfair), Georgia, serif', fontSize: '3rem', fontWeight: 900, background: `linear-gradient(135deg, ${cfg.accent}, #d4a55a)`, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', opacity: 0.3 }}>
-                    {product.name}
-                  </span>
-                </div>
-              </>
-            )}
+            <ProductImageGallery
+              images={images}
+              productName={product.name}
+              accentColor={cfg.accent}
+              glow={cfg.glow}
+            />
             {hasOffer && (
               <div style={{ position: 'absolute', top: '1rem', right: '1rem', background: '#ef4444', color: 'white', fontSize: '0.75rem', fontWeight: 700, padding: '0.4rem 0.8rem', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '5px', zIndex: 3 }}>
                 <Tag size={12} /> OFERTA

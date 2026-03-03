@@ -45,16 +45,15 @@ function toSlug(s: string) {
 
 function ImageUploader({
   productId,
-  currentUrl,
-  onUploaded,
+  currentUrls,
+  onUpdated,
 }: {
   productId: string
-  currentUrl: string | null
-  onUploaded: (url: string | null) => void
+  currentUrls: string[]
+  onUpdated: (urls: string[]) => void
 }) {
   const [uploading, setUploading] = useState(false)
-  const [deleting, setDeleting] = useState(false)
-  const [preview, setPreview] = useState<string | null>(currentUrl)
+  const [deletingIdx, setDeletingIdx] = useState<number | null>(null)
   const [error, setError] = useState('')
 
   async function handleFile(file: File) {
@@ -66,73 +65,61 @@ function ImageUploader({
     const data = await res.json()
     setUploading(false)
     if (!res.ok) { setError(data.error ?? 'Error al subir'); return }
-    setPreview(data.image_url)
-    onUploaded(data.image_url)
+    onUpdated(data.image_urls ?? (data.image_url ? [data.image_url] : []))
   }
 
-  async function handleDelete() {
-    setDeleting(true)
-    await fetch(`/api/products/${productId}/image`, { method: 'DELETE' })
-    setDeleting(false)
-    setPreview(null)
-    onUploaded(null)
+  async function handleDelete(index: number) {
+    setDeletingIdx(index)
+    const res = await fetch(`/api/products/${productId}/image`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ index }),
+    })
+    const data = await res.json()
+    setDeletingIdx(null)
+    onUpdated(data.image_urls ?? [])
   }
 
   return (
     <div className="space-y-3 py-3">
       <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-        Imagen del producto
+        Imágenes del producto ({currentUrls.length} / 5)
       </p>
 
-      {preview ? (
-        <div className="relative inline-block">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={preview}
-            alt="Imagen del producto"
-            className="h-40 w-40 object-cover rounded-lg border"
-          />
-          <div className="absolute top-1 right-1 flex gap-1">
-            {/* Replace */}
-            <label className="cursor-pointer bg-background/90 hover:bg-background border rounded p-1 shadow-sm transition-colors" title="Cambiar imagen">
-              <ImagePlus className="w-3.5 h-3.5" />
-              <input
-                type="file"
-                accept="image/jpeg,image/png,image/webp"
-                className="sr-only"
-                onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f) }}
-              />
-            </label>
-            {/* Delete */}
+      <div className="flex flex-wrap gap-2">
+        {currentUrls.map((url, idx) => (
+          <div key={url} className="relative">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={url} alt={`Imagen ${idx + 1}`} className="h-28 w-28 object-cover rounded-lg border" />
+            {idx === 0 && (
+              <span className="absolute bottom-1 left-1 bg-primary text-primary-foreground text-[10px] px-1 rounded">Principal</span>
+            )}
             <button
-              onClick={handleDelete}
-              disabled={deleting}
-              className="bg-background/90 hover:bg-destructive hover:text-destructive-foreground border rounded p-1 shadow-sm transition-colors"
+              onClick={() => handleDelete(idx)}
+              disabled={deletingIdx === idx}
+              className="absolute top-1 right-1 bg-background/90 hover:bg-destructive hover:text-destructive-foreground border rounded p-1 shadow-sm transition-colors"
               title="Eliminar imagen"
             >
-              {deleting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash className="w-3.5 h-3.5" />}
+              {deletingIdx === idx ? <Loader2 className="w-3 h-3 animate-spin" /> : <Trash className="w-3 h-3" />}
             </button>
           </div>
-          {uploading && (
-            <div className="absolute inset-0 bg-background/70 flex items-center justify-center rounded-lg">
-              <Loader2 className="w-6 h-6 animate-spin text-primary" />
-            </div>
-          )}
-        </div>
-      ) : (
-        <label className={`flex flex-col items-center justify-center w-40 h-40 rounded-lg border-2 border-dashed cursor-pointer transition-colors ${uploading ? 'opacity-50 pointer-events-none' : 'hover:border-primary hover:bg-muted/40'}`}>
-          {uploading
-            ? <Loader2 className="w-7 h-7 animate-spin text-muted-foreground" />
-            : <><ImagePlus className="w-7 h-7 text-muted-foreground mb-2" /><span className="text-xs text-muted-foreground text-center px-2">Subir imagen<br/>JPG, PNG, WEBP · máx 5 MB</span></>
-          }
-          <input
-            type="file"
-            accept="image/jpeg,image/png,image/webp"
-            className="sr-only"
-            onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f) }}
-          />
-        </label>
-      )}
+        ))}
+
+        {currentUrls.length < 5 && (
+          <label className={`flex flex-col items-center justify-center h-28 w-28 rounded-lg border-2 border-dashed cursor-pointer transition-colors ${uploading ? 'opacity-50 pointer-events-none' : 'hover:border-primary hover:bg-muted/40'}`}>
+            {uploading
+              ? <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+              : <><ImagePlus className="w-6 h-6 text-muted-foreground mb-1" /><span className="text-[10px] text-muted-foreground text-center px-1">Agregar<br/>JPG/PNG/WEBP</span></>
+            }
+            <input
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              className="sr-only"
+              onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f) }}
+            />
+          </label>
+        )}
+      </div>
 
       {error && <p className="text-xs text-destructive">{error}</p>}
     </div>
@@ -144,9 +131,11 @@ function ImageUploader({
 function VariantRow({
   variant,
   onSave,
+  onDelete,
 }: {
   variant: ProductVariant
   onSave: (id: string, payload: { price: number; sale_price: number | null; stock: number; active: boolean }) => Promise<void>
+  onDelete: (id: string) => Promise<void>
 }) {
   const [editing, setEditing] = useState(false)
   const [price, setPrice] = useState(variant.price)
@@ -154,6 +143,8 @@ function VariantRow({
   const [stock, setStock] = useState(variant.stock)
   const [active, setActive] = useState(variant.active)
   const [saving, setSaving] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+  const [confirmDelete, setConfirmDelete] = useState(false)
 
   const discountPct = variant.sale_price
     ? Math.round((1 - variant.sale_price / variant.price) * 100)
@@ -203,9 +194,27 @@ function VariantRow({
             <Badge variant={variant.active ? 'default' : 'secondary'} className="text-xs">
               {variant.active ? 'Activo' : 'Inactivo'}
             </Badge>
-            <Button size="sm" variant="ghost" className="ml-auto h-7 gap-1 text-xs" onClick={() => setEditing(true)}>
-              <Edit2 className="w-3 h-3" /> Editar
-            </Button>
+            <div className="ml-auto flex gap-1">
+              {confirmDelete ? (
+                <>
+                  <span className="text-xs text-destructive self-center">¿Eliminar?</span>
+                  <Button size="sm" variant="destructive" className="h-7 text-xs" disabled={deleting}
+                    onClick={async () => { setDeleting(true); await onDelete(variant.id) }}>
+                    {deleting ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Sí'}
+                  </Button>
+                  <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => setConfirmDelete(false)}>No</Button>
+                </>
+              ) : (
+                <>
+                  <Button size="sm" variant="ghost" className="h-7 gap-1 text-xs" onClick={() => setEditing(true)}>
+                    <Edit2 className="w-3 h-3" /> Editar
+                  </Button>
+                  <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive" onClick={() => setConfirmDelete(true)}>
+                    <Trash2 className="w-3 h-3" />
+                  </Button>
+                </>
+              )}
+            </div>
           </>
         )}
       </div>
@@ -424,6 +433,7 @@ function ProductInfoEditor({
 function ProductCard({
   product,
   onUpdateVariant,
+  onDeleteVariant,
   onUpdateProduct,
   onToggleActive,
   onToggleFeatured,
@@ -431,6 +441,7 @@ function ProductCard({
 }: {
   product: ProductWithVariants
   onUpdateVariant: (id: string, p: { price: number; sale_price: number | null; stock: number; active: boolean }) => Promise<void>
+  onDeleteVariant: (id: string) => Promise<void>
   onUpdateProduct: (id: string, p: { description: string; material: string; includes: string[] }) => Promise<void>
   onToggleActive: (id: string, active: boolean) => Promise<void>
   onToggleFeatured: (id: string, featured: boolean) => Promise<void>
@@ -441,7 +452,11 @@ function ProductCard({
   const [editingInfo, setEditingInfo] = useState(false)
   const [addingVariant, setAddingVariant] = useState(false)
   const [variantsOpen, setVariantsOpen] = useState(true)
-  const [imageUrl, setImageUrl] = useState<string | null>(product.image_url ?? null)
+  const [imageUrls, setImageUrls] = useState<string[]>(
+    (product as any).image_urls?.length
+      ? (product as any).image_urls
+      : product.image_url ? [product.image_url] : []
+  )
 
   const activeSales = product.variants.filter(v => v.sale_price != null).length
 
@@ -462,9 +477,9 @@ function ProductCard({
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between gap-3">
           {/* Thumbnail */}
-          {imageUrl && (
+          {imageUrls[0] && (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={imageUrl} alt={product.name} className="w-16 h-16 object-cover rounded-lg border flex-shrink-0" />
+            <img src={imageUrls[0]} alt={product.name} className="w-16 h-16 object-cover rounded-lg border flex-shrink-0" />
           )}
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1 flex-wrap">
@@ -533,8 +548,8 @@ function ProductCard({
             <Separator />
             <ImageUploader
               productId={product.id}
-              currentUrl={imageUrl}
-              onUploaded={setImageUrl}
+              currentUrls={imageUrls}
+              onUpdated={setImageUrls}
             />
           </>
         )}
@@ -553,7 +568,7 @@ function ProductCard({
           <>
             <div className="divide-y">
               {product.variants.map(v => (
-                <VariantRow key={v.id} variant={v} onSave={onUpdateVariant} />
+                <VariantRow key={v.id} variant={v} onSave={onUpdateVariant} onDelete={onDeleteVariant} />
               ))}
             </div>
 
@@ -837,10 +852,14 @@ function NewProductDialog({
 // ─── Main export ──────────────────────────────────────────────────────────────
 
 export function ProductManager() {
-  const { products, isLoading, updateProduct, updateVariant, createProduct, createVariant } = useProducts(true)
+  const { products, isLoading, updateProduct, updateVariant, deleteVariant, createProduct, createVariant } = useProducts(true)
 
   const handleUpdateVariant = async (id: string, payload: { price: number; sale_price: number | null; stock: number; active: boolean }) => {
     await updateVariant(id, payload)
+  }
+
+  const handleDeleteVariant = async (id: string) => {
+    await deleteVariant(id)
   }
 
   const handleUpdateProduct = async (id: string, payload: { description: string; material: string; includes: string[] }) => {
@@ -908,6 +927,7 @@ export function ProductManager() {
               key={p.id}
               product={p}
               onUpdateVariant={handleUpdateVariant}
+              onDeleteVariant={handleDeleteVariant}
               onUpdateProduct={handleUpdateProduct}
               onToggleActive={handleToggleActive}
               onToggleFeatured={handleToggleFeatured}

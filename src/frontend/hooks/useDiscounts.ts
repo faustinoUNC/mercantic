@@ -12,7 +12,7 @@ export function useDiscounts() {
     try {
       const res = await fetch('/api/discounts')
       const data = await res.json()
-      setDiscounts(data.discounts ?? [])
+      setDiscounts(data.codes ?? data.discounts ?? [])
     } catch (err) {
       console.error('[useDiscounts] fetch error:', err)
     } finally {

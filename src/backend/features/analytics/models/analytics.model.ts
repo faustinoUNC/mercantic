@@ -21,6 +21,12 @@ export interface VariantStats {
   revenue: number
 }
 
+export interface ProvinceStats {
+  province: string
+  total_orders: number
+  revenue: number
+}
+
 export interface GeneralStats {
   summary: {
     total_orders: number
@@ -32,6 +38,7 @@ export interface GeneralStats {
   daily_sales: DailySale[]
   by_product: ProductStats[]
   by_variant: VariantStats[]
+  by_province: ProvinceStats[]
   payment_status: {
     pending: number
     paid: number
