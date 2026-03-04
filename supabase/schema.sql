@@ -15,11 +15,13 @@ create table if not exists products (
   includes    text[] default array['Parrilla', 'Estaca', 'Tapa'],
   active      boolean default true,
   featured    boolean default false,             -- destacado en landing page
+  is_new      boolean not null default false,    -- sección "Nuevos Lanzamientos"
   created_at  timestamptz default now()
 );
 
--- Migration: add featured if upgrading from an older schema
+-- Migration: add columns if upgrading from an older schema
 -- alter table products add column if not exists featured boolean default false;
+-- alter table products add column if not exists is_new boolean not null default false;
 
 -- ─────────────────────────────────────────────
 -- VARIANTES DE PRODUCTO (tamaño + color + precio)

@@ -24,6 +24,7 @@ export interface Product {
   includes: string[]
   active: boolean
   featured: boolean
+  is_new: boolean
   image_url: string | null
   image_urls: string[]
   created_at: string
@@ -43,6 +44,7 @@ export interface CreateProductPayload {
   material?: string
   includes?: string[]
   featured?: boolean
+  is_new?: boolean
 }
 
 export interface CreateVariantPayload {
@@ -67,6 +69,7 @@ export interface UpdateProductPayload {
   includes?: string[]
   active?: boolean
   featured?: boolean
+  is_new?: boolean
   image_url?: string | null
   image_urls?: string[]
 }

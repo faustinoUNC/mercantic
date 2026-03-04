@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/dialog'
 import {
   Package, Edit2, Save, X, Tag, Percent, ChevronDown, ChevronUp,
-  Plus, Star, Trash2, CircleCheck, ImagePlus, Loader2, Trash, Search, ArchiveRestore,
+  Plus, Star, Sparkles, Trash2, CircleCheck, ImagePlus, Loader2, Trash, Search, ArchiveRestore,
 } from 'lucide-react'
 import { useProducts } from '@/frontend/hooks/useProducts'
 import type {
@@ -461,6 +461,7 @@ function ProductEditModal({
   onUpdateProduct,
   onToggleActive,
   onToggleFeatured,
+  onToggleIsNew,
   onCreateVariant,
   onRefresh,
 }: {
@@ -472,6 +473,7 @@ function ProductEditModal({
   onUpdateProduct: (id: string, p: { description: string; material: string; includes: string[] }) => Promise<void>
   onToggleActive: (id: string, active: boolean) => Promise<void>
   onToggleFeatured: (id: string, featured: boolean) => Promise<void>
+  onToggleIsNew: (id: string, is_new: boolean) => Promise<void>
   onCreateVariant: (p: CreateVariantPayload) => Promise<{ ok: boolean }>
   onRefresh?: () => void
 }) {
@@ -531,6 +533,17 @@ function ProductEditModal({
             >
               <Star className={`w-3.5 h-3.5 ${product.featured ? 'fill-amber-500' : ''}`} />
               {product.featured ? 'Destacado' : 'Marcar destacado'}
+            </button>
+            <button
+              onClick={() => onToggleIsNew(product.id, !product.is_new)}
+              className={`flex items-center gap-1.5 text-sm px-3 py-1.5 rounded border transition-all ${
+                product.is_new
+                  ? 'bg-sky-500/20 border-sky-500/40 text-sky-600'
+                  : 'border-input text-muted-foreground hover:bg-muted'
+              }`}
+            >
+              <Sparkles className={`w-3.5 h-3.5 ${product.is_new ? 'fill-sky-500' : ''}`} />
+              {product.is_new ? 'Nuevo lanzamiento' : 'Marcar como nuevo'}
             </button>
           </div>
 
@@ -596,6 +609,7 @@ function ProductRow({
   onUpdateProduct,
   onToggleActive,
   onToggleFeatured,
+  onToggleIsNew,
   onCreateVariant,
   onDeleteProduct,
   onRefresh,
@@ -606,6 +620,7 @@ function ProductRow({
   onUpdateProduct: (id: string, p: { description: string; material: string; includes: string[] }) => Promise<void>
   onToggleActive: (id: string, active: boolean) => Promise<void>
   onToggleFeatured: (id: string, featured: boolean) => Promise<void>
+  onToggleIsNew: (id: string, is_new: boolean) => Promise<void>
   onCreateVariant: (p: CreateVariantPayload) => Promise<{ ok: boolean }>
   onDeleteProduct: (id: string) => Promise<void>
   onRefresh?: () => void
@@ -654,6 +669,7 @@ function ProductRow({
           <div className="flex items-center gap-1.5 flex-wrap">
             <span className="font-semibold text-sm truncate">{product.name}</span>
             {product.featured && <Star className="w-3 h-3 text-amber-500 fill-amber-500" />}
+            {product.is_new && <Sparkles className="w-3 h-3 text-sky-500" />}
             {onSale > 0 && <Badge variant="destructive" className="text-[10px] px-1 py-0">{onSale} oferta</Badge>}
           </div>
           <div className="text-xs text-muted-foreground mt-0.5">
@@ -671,6 +687,14 @@ function ProductRow({
           className={`flex-shrink-0 rounded p-1 transition-all ${product.featured ? 'text-amber-500' : 'text-muted-foreground/30 hover:text-amber-400'}`}
         >
           <Star className={`w-4 h-4 ${product.featured ? 'fill-amber-500' : ''}`} />
+        </button>
+        {/* Quick is_new toggle */}
+        <button
+          onClick={() => onToggleIsNew(product.id, !product.is_new)}
+          title={product.is_new ? 'Quitar de nuevos lanzamientos' : 'Marcar como nuevo lanzamiento'}
+          className={`flex-shrink-0 rounded p-1 transition-all ${product.is_new ? 'text-sky-500' : 'text-muted-foreground/30 hover:text-sky-400'}`}
+        >
+          <Sparkles className="w-4 h-4" />
         </button>
 
         {/* Active toggle */}
@@ -712,6 +736,7 @@ function ProductRow({
           onUpdateProduct={onUpdateProduct}
           onToggleActive={onToggleActive}
           onToggleFeatured={onToggleFeatured}
+          onToggleIsNew={onToggleIsNew}
           onCreateVariant={onCreateVariant}
           onRefresh={onRefresh}
         />
@@ -1010,6 +1035,10 @@ export function ProductManager() {
     await updateProduct(id, { featured })
   }
 
+  const handleToggleIsNew = async (id: string, is_new: boolean) => {
+    await updateProduct(id, { is_new })
+  }
+
   const handleCreateVariant = async (payload: CreateVariantPayload) => {
     return createVariant(payload)
   }
@@ -1097,6 +1126,7 @@ export function ProductManager() {
               onUpdateProduct={handleUpdateProduct}
               onToggleActive={handleToggleActive}
               onToggleFeatured={handleToggleFeatured}
+              onToggleIsNew={handleToggleIsNew}
               onCreateVariant={handleCreateVariant}
               onDeleteProduct={handleDeleteProduct}
               onRefresh={refresh}
