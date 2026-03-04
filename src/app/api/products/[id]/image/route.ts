@@ -12,6 +12,31 @@ function adminClient() {
   )
 }
 
+/**
+ * Persists image_urls (and image_url for legacy schemas) to the DB.
+ * Tries combined update first; if it fails (e.g. image_url column missing)
+ * falls back to updating each column independently so at least one succeeds.
+ */
+async function persistUrls(
+  supabase: ReturnType<typeof adminClient>,
+  id: string,
+  image_urls: string[],
+) {
+  const image_url = image_urls[0] ?? null
+
+  // Attempt 1: update both columns at once (works when both columns exist)
+  const { error } = await supabase
+    .from('products')
+    .update({ image_url, image_urls })
+    .eq('id', id)
+
+  if (!error) return
+
+  // Attempt 2: update them independently (handles missing column gracefully)
+  await supabase.from('products').update({ image_urls }).eq('id', id)
+  await supabase.from('products').update({ image_url }).eq('id', id)
+}
+
 // POST: Upload a new image (appends to image_urls array)
 export async function POST(
   req: NextRequest,
@@ -30,7 +55,6 @@ export async function POST(
 
   const supabase = adminClient()
 
-  // Unique filename per upload
   const ext = file.type.split('/')[1].replace('jpeg', 'jpg')
   const filename = `${Date.now()}.${ext}`
   const path = `${id}/${filename}`
@@ -43,47 +67,38 @@ export async function POST(
   if (uploadError) return NextResponse.json({ error: uploadError.message }, { status: 500 })
 
   const { data: urlData } = supabase.storage.from(BUCKET).getPublicUrl(path)
-  const image_url = `${urlData.publicUrl}?t=${Date.now()}`
+  const newUrl = `${urlData.publicUrl}?t=${Date.now()}`
 
-  // Use existing_urls sent by the client (authoritative) or fall back to DB query
+  // Determine current list: prefer client-sent list (authoritative), fall back to DB
   const existingUrlsRaw = formData.get('existing_urls') as string | null
   let existing: string[] = []
+
   if (existingUrlsRaw) {
     try { existing = JSON.parse(existingUrlsRaw) } catch { /* ignore */ }
   } else {
-    const { data: product, error: fetchErr } = await supabase
+    const { data: product } = await supabase
       .from('products')
       .select('image_url, image_urls')
       .eq('id', id)
       .single()
-    if (fetchErr || !product) {
-      const { data: legacy } = await supabase.from('products').select('image_url').eq('id', id).single()
-      if (legacy?.image_url) existing = [legacy.image_url]
-    } else {
+
+    if (product) {
       existing = (product.image_urls as string[] | null) ?? []
-      if (product.image_url && !existing.includes(product.image_url)) {
-        existing.unshift(product.image_url)
+      // Fall back to image_url if image_urls is empty
+      if (existing.length === 0 && product.image_url) {
+        existing = [product.image_url as string]
       }
     }
   }
-  const image_urls = [...existing, image_url]
 
-  const { error: dbError } = await supabase
-    .from('products')
-    .update({ image_url: image_urls[0], image_urls })
-    .eq('id', id)
+  const image_urls = [...existing, newUrl]
+  await persistUrls(supabase, id, image_urls)
 
-  if (dbError) {
-    // image_urls column not migrated yet — update only image_url preserving nothing extra
-    await supabase.from('products').update({ image_url: image_urls[0] }).eq('id', id)
-    return NextResponse.json({ image_url: image_urls[0], image_urls })
-  }
-
-  return NextResponse.json({ image_url, image_urls })
+  return NextResponse.json({ image_url: image_urls[0], image_urls })
 }
 
-// DELETE: Remove one or all images
-// Body: { index?: number } — omit to remove all
+// DELETE: Remove one image by index, or all if no index provided
+// Body: { index?: number }
 export async function DELETE(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -103,20 +118,22 @@ export async function DELETE(
     .eq('id', id)
     .single()
 
-  const existing: string[] = (product?.image_urls as string[] | null) ?? []
+  // Build current list — try image_urls first, fall back to image_url
+  let existing: string[] = (product?.image_urls as string[] | null) ?? []
+  if (existing.length === 0 && (product as any)?.image_url) {
+    existing = [(product as any).image_url as string]
+  }
 
   if (removeIndex !== undefined && removeIndex >= 0 && removeIndex < existing.length) {
     // Remove single image
     const urlToRemove = existing[removeIndex]
-    // Extract storage path from URL
     const storagePath = urlToRemove.split('/storage/v1/object/public/' + BUCKET + '/')[1]?.split('?')[0]
     if (storagePath) {
       await supabase.storage.from(BUCKET).remove([storagePath])
     }
     const image_urls = existing.filter((_, i) => i !== removeIndex)
-    const image_url = image_urls[0] ?? null
-    await supabase.from('products').update({ image_url, image_urls }).eq('id', id)
-    return NextResponse.json({ image_url, image_urls })
+    await persistUrls(supabase, id, image_urls)
+    return NextResponse.json({ image_url: image_urls[0] ?? null, image_urls })
   }
 
   // Remove all
@@ -124,6 +141,6 @@ export async function DELETE(
   if (files && files.length > 0) {
     await supabase.storage.from(BUCKET).remove(files.map(f => `${id}/${f.name}`))
   }
-  await supabase.from('products').update({ image_url: null, image_urls: [] }).eq('id', id)
+  await persistUrls(supabase, id, [])
   return NextResponse.json({ image_url: null, image_urls: [] })
 }

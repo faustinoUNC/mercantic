@@ -82,7 +82,7 @@ export default async function ProductosPage() {
               {/* Visual / image */}
               <div style={{
                 aspectRatio: '16/9',
-                background: product.image_urls?.length
+                background: (product.image_urls?.length || product.image_url)
                   ? undefined
                   : `radial-gradient(ellipse at 50% 80%, ${bgGlow}, rgba(15, 7, 2, 0.9))`,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -90,10 +90,10 @@ export default async function ProductosPage() {
                 borderBottom: '1px solid rgba(92, 53, 32, 0.3)',
                 overflow: 'hidden',
               }}>
-                {product.image_urls?.length ? (
+                {(product.image_urls?.length || product.image_url) ? (
                   /* eslint-disable-next-line @next/next/no-img-element */
                   <img
-                    src={product.image_urls[0]}
+                    src={product.image_urls?.[0] ?? product.image_url!}
                     alt={product.name}
                     style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                   />

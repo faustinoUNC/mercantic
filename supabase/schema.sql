@@ -109,7 +109,8 @@ create index if not exists idx_variants_product_id    on product_variants(produc
 -- ─────────────────────────────────────────────
 -- IMÁGENES DE PRODUCTOS (migration)
 -- ─────────────────────────────────────────────
--- alter table products add column if not exists image_url text;
+-- Columna imagen principal (legacy, usada como fallback)
+alter table products add column if not exists image_url text;
 -- Crear bucket en Supabase Storage: product-images (público, 5 MB, jpg/png/webp)
 
 -- Migration: multiple images support
