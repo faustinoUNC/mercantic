@@ -102,6 +102,10 @@
   }
   html {
     scroll-behavior: smooth;
+    scroll-snap-type: y proximity;
+  }
+  main > section {
+    scroll-snap-align: start;
   }
   body {
     @apply bg-background text-foreground;

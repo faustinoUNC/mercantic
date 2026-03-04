@@ -156,13 +156,29 @@ function FeaturedPanel({
           {from != null && (
             <div style={{ marginBottom: '0.6rem' }}>
               {hasSale && original && (
-                <div style={{
-                  color: 'rgba(245,230,211,0.35)',
-                  fontSize: '0.8rem',
-                  textDecoration: 'line-through',
-                  textAlign: 'right',
-                }}>
-                  ${original.toLocaleString('es-AR')}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '8px', marginBottom: '2px' }}>
+                  <span style={{
+                    color: 'rgba(245,230,211,0.65)',
+                    fontSize: '0.85rem',
+                    textDecoration: 'line-through',
+                    textDecorationColor: 'rgba(239,68,68,0.7)',
+                    fontWeight: 500,
+                  }}>
+                    ${original.toLocaleString('es-AR')}
+                  </span>
+                  {original > 0 && (
+                    <span style={{
+                      background: '#ef4444',
+                      color: 'white',
+                      fontSize: '0.6rem',
+                      fontWeight: 700,
+                      padding: '2px 5px',
+                      borderRadius: '3px',
+                      letterSpacing: '0.05em',
+                    }}>
+                      -{Math.round((1 - from / original) * 100)}%
+                    </span>
+                  )}
                 </div>
               )}
               <div style={{
@@ -212,28 +228,43 @@ export function ProductShowcase() {
     }}>
       {/* Section label */}
       <motion.div
-        initial={{ opacity: 0, y: 16 }}
+        initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
-        transition={{ duration: 0.6 }}
+        transition={{ duration: 0.65 }}
         style={{
-          display: 'flex', alignItems: 'center', gap: '1rem',
           padding: '0 clamp(1.5rem, 5vw, 4rem)',
           marginBottom: 'clamp(1.5rem, 3vw, 2.5rem)',
         }}
       >
-        <div style={{ width: '32px', height: '1px', background: `rgba(196,98,45,0.5)`, flexShrink: 0 }} />
-        <span style={{
-          color: '#c4622d',
-          fontSize: '0.65rem',
-          letterSpacing: '0.3em',
-          textTransform: 'uppercase',
-          fontWeight: 600,
-          whiteSpace: 'nowrap',
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.6rem' }}>
+          <div style={{ width: '40px', height: '1px', background: 'rgba(196,98,45,0.6)', flexShrink: 0 }} />
+          <span style={{
+            color: 'rgba(196,98,45,0.7)',
+            fontSize: '0.62rem',
+            letterSpacing: '0.35em',
+            textTransform: 'uppercase',
+            fontWeight: 600,
+            whiteSpace: 'nowrap',
+          }}>
+            Colección
+          </span>
+        </div>
+        <h2 style={{
+          fontFamily: 'var(--font-playfair), Georgia, serif',
+          fontSize: 'clamp(2rem, 5vw, 3.2rem)',
+          fontWeight: 900,
+          lineHeight: 1.0,
+          letterSpacing: '-0.02em',
+          background: 'linear-gradient(135deg, #f5e6d3 0%, #d4a55a 60%, #e8783a 100%)',
+          WebkitBackgroundClip: 'text',
+          WebkitTextFillColor: 'transparent',
+          backgroundClip: 'text',
+          paddingBottom: '0.08em',
+          filter: 'drop-shadow(0 0 40px rgba(196,98,45,0.2))',
         }}>
           Destacados
-        </span>
-        <div style={{ flex: 1, height: '1px', background: 'linear-gradient(to right, rgba(196,98,45,0.3), transparent)' }} />
+        </h2>
       </motion.div>
 
       {/* Filmstrip */}
@@ -274,30 +305,42 @@ export function ProductShowcase() {
 
       {/* Footer link */}
       <motion.div
-        initial={{ opacity: 0 }}
-        whileInView={{ opacity: 1 }}
+        initial={{ opacity: 0, y: 8 }}
+        whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
-        transition={{ duration: 0.5, delay: 0.2 }}
+        transition={{ duration: 0.5, delay: 0.3 }}
         style={{
           display: 'flex',
-          justifyContent: 'flex-end',
-          padding: 'clamp(1rem, 2vw, 1.5rem) clamp(1.5rem, 5vw, 4rem) 0',
+          justifyContent: 'center',
+          padding: 'clamp(1.5rem, 3vw, 2.5rem) clamp(1.5rem, 5vw, 4rem) 0',
         }}
       >
         <Link href="/productos" style={{
-          display: 'inline-flex', alignItems: 'center', gap: '6px',
-          color: '#5c3520',
+          display: 'inline-flex', alignItems: 'center', gap: '10px',
+          color: '#c4a882',
           textDecoration: 'none',
-          fontSize: '0.72rem',
-          letterSpacing: '0.15em',
+          fontSize: '0.8rem',
+          letterSpacing: '0.18em',
           textTransform: 'uppercase',
           fontWeight: 600,
-          transition: 'color 0.2s',
+          padding: '0.75rem 1.75rem',
+          border: '1px solid rgba(196,98,45,0.3)',
+          borderRadius: '4px',
+          background: 'rgba(196,98,45,0.06)',
+          transition: 'all 0.3s',
         }}
-          onMouseEnter={e => e.currentTarget.style.color = '#c4622d'}
-          onMouseLeave={e => e.currentTarget.style.color = '#5c3520'}
+          onMouseEnter={e => {
+            e.currentTarget.style.color = '#f5e6d3'
+            e.currentTarget.style.borderColor = 'rgba(196,98,45,0.6)'
+            e.currentTarget.style.background = 'rgba(196,98,45,0.12)'
+          }}
+          onMouseLeave={e => {
+            e.currentTarget.style.color = '#c4a882'
+            e.currentTarget.style.borderColor = 'rgba(196,98,45,0.3)'
+            e.currentTarget.style.background = 'rgba(196,98,45,0.06)'
+          }}
         >
-          Ver todos los modelos <ArrowRight size={12} />
+          Ver todos los modelos <ArrowRight size={14} />
         </Link>
       </motion.div>
 

@@ -492,7 +492,7 @@ function ProductEditModal({
 
   return (
     <Dialog open={open} onOpenChange={v => { if (!v) handleClose() }}>
-      <DialogContent className="w-full max-w-2xl max-h-[92vh] overflow-y-auto">
+      <DialogContent className="w-full max-w-2xl max-h-[92vh] overflow-y-auto" onInteractOutside={e => e.preventDefault()}>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Package className="w-5 h-5" /> {product.name}
@@ -659,6 +659,15 @@ function ProductRow({
           </div>
         </div>
 
+        {/* Quick featured toggle */}
+        <button
+          onClick={() => onToggleFeatured(product.id, !product.featured)}
+          title={product.featured ? 'Quitar de destacados' : 'Marcar como destacado'}
+          className={`flex-shrink-0 rounded p-1 transition-all ${product.featured ? 'text-amber-500' : 'text-muted-foreground/30 hover:text-amber-400'}`}
+        >
+          <Star className={`w-4 h-4 ${product.featured ? 'fill-amber-500' : ''}`} />
+        </button>
+
         {/* Active toggle */}
         <Switch
           checked={product.active}
@@ -734,6 +743,8 @@ function NewProductDialog({
   ])
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+  const [createdProductId, setCreatedProductId] = useState<string | null>(null)
+  const [imageUrls, setImageUrls] = useState<string[]>([])
 
   useEffect(() => {
     if (!slugEdited) setSlug(toSlug(name))
@@ -770,8 +781,13 @@ function NewProductDialog({
       }
     }
     setSaving(false)
+    setCreatedProductId(result.product.id)
+  }
+
+  function handleFinish() {
     setOpen(false)
-    // Reset
+    setCreatedProductId(null)
+    setImageUrls([])
     setName(''); setSlug(''); setSlugEdited(false)
     setDescription(''); setMaterial('Chapa 3,2mm'); setIncludesRaw('Parrilla, Estaca, Tapa')
     setVariants([{ size: '1.25m', color: 'negro', price: '', sale_price: '' }])
@@ -784,12 +800,25 @@ function NewProductDialog({
           <Plus className="w-4 h-4" /> Nuevo Producto
         </Button>
       </DialogTrigger>
-      <DialogContent className="w-full max-w-2xl max-h-[92vh] overflow-y-auto">
+      <DialogContent className="w-full max-w-2xl max-h-[92vh] overflow-y-auto" onInteractOutside={e => e.preventDefault()}>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Package className="w-5 h-5" /> Nuevo Producto
+            <Package className="w-5 h-5" /> {createdProductId ? `${name} — Imágenes` : 'Nuevo Producto'}
           </DialogTitle>
         </DialogHeader>
+
+        {/* Step 2: image upload after product created */}
+        {createdProductId ? (
+          <div className="space-y-4 pt-2">
+            <p className="text-sm text-muted-foreground">
+              Producto creado. Ahora podés agregar fotos (opcional).
+            </p>
+            <ImageUploader productId={createdProductId} currentUrls={imageUrls} onUpdated={setImageUrls} />
+            <Button onClick={handleFinish} className="w-full gap-2">
+              <CircleCheck className="w-4 h-4" /> Listo
+            </Button>
+          </div>
+        ) : (
 
         <div className="space-y-5 pt-2">
           {/* Name + Slug */}
@@ -936,6 +965,7 @@ function NewProductDialog({
             </Button>
           </div>
         </div>
+        )}
       </DialogContent>
     </Dialog>
   )
