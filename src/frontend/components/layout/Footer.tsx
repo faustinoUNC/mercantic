@@ -81,6 +81,13 @@ export function Footer() {
               >
                 WhatsApp
               </a>
+              <a href="https://www.instagram.com/elmercantic/?hl=es-la" target="_blank" rel="noopener noreferrer"
+                style={{ color: '#5c3520', textDecoration: 'none', fontSize: '0.875rem' }}
+                onMouseEnter={(e) => (e.currentTarget.style.color = '#c4a882')}
+                onMouseLeave={(e) => (e.currentTarget.style.color = '#5c3520')}
+              >
+                Instagram
+              </a>
               <a href="mailto:contacto@elmercantic.com"
                 style={{ color: '#5c3520', textDecoration: 'none', fontSize: '0.875rem' }}
                 onMouseEnter={(e) => (e.currentTarget.style.color = '#c4a882')}

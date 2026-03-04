@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { Navbar } from '@/frontend/components/layout/Navbar'
 import { Footer } from '@/frontend/components/layout/Footer'
-import { ArrowRight, Circle, Square } from 'lucide-react'
+import { ArrowRight, Tag } from 'lucide-react'
 import { listProducts } from '@/backend/features/products/services/product.service'
 import { formatPrice } from '@/lib/utils/formatting'
 
@@ -69,6 +69,7 @@ export default async function ProductosPage() {
           const activeVariants = product.variants.filter(v => v.active)
           const prices = activeVariants.map(v => v.sale_price ?? v.price)
           const priceFrom = prices.length > 0 ? Math.min(...prices) : null
+          const hasOffer = activeVariants.some(v => v.sale_price != null)
 
           return (
             <div key={product.slug} style={{
@@ -97,9 +98,8 @@ export default async function ProductosPage() {
                   />
                 ) : (
                   <div style={{
-                    width: product.shape === 'round' ? '140px' : '160px',
-                    height: product.shape === 'round' ? '140px' : '120px',
-                    borderRadius: product.shape === 'round' ? '50%' : '10px',
+                    width: '160px', height: '120px',
+                    borderRadius: '10px',
                     background: 'linear-gradient(145deg, #3d2415, #1a0f07)',
                     border: `2px solid ${accent}50`,
                     boxShadow: `0 0 40px ${accent}30, inset 0 0 30px rgba(196,98,45,0.08)`,
@@ -107,27 +107,23 @@ export default async function ProductosPage() {
                   }}>
                     <div style={{
                       width: '50%', height: '50%',
-                      borderRadius: product.shape === 'round' ? '50%' : '4px',
+                      borderRadius: '4px',
                       background: `radial-gradient(circle, ${accent}40, transparent 70%)`,
                     }} />
                   </div>
                 )}
-                {/* Shape badge */}
-                <div style={{
-                  position: 'absolute', top: '1rem', left: '1rem',
-                  background: 'rgba(15, 7, 2, 0.8)',
-                  border: `1px solid ${accent}40`,
-                  borderRadius: '100px',
-                  padding: '0.3rem 0.75rem',
-                  display: 'flex', alignItems: 'center', gap: '6px',
-                }}>
-                  {product.shape === 'round'
-                    ? <Circle size={10} style={{ color: accent }} />
-                    : <Square size={10} style={{ color: accent }} />}
-                  <span style={{ color: '#c4a882', fontSize: '0.7rem', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
-                    {product.shape === 'round' ? 'Redondo' : 'Cuadrado'}
-                  </span>
-                </div>
+                {/* Offer badge */}
+                {hasOffer && (
+                  <div style={{
+                    position: 'absolute', top: '1rem', right: '1rem',
+                    background: '#ef4444', color: 'white',
+                    fontSize: '0.7rem', fontWeight: 700,
+                    padding: '0.3rem 0.75rem', borderRadius: '6px',
+                    display: 'flex', alignItems: 'center', gap: '5px',
+                  }}>
+                    <Tag size={10} /> OFERTA
+                  </div>
+                )}
               </div>
 
               {/* Content */}

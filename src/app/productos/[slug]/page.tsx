@@ -7,10 +7,8 @@ import { ProductImageGallery } from '@/frontend/components/features/products/Pro
 import { ArrowLeft, Package, Shield, Ruler, Tag } from 'lucide-react'
 import { getProduct } from '@/backend/features/products/services/product.service'
 
-const SHAPE_CONFIG = {
-  round: { accent: '#e8783a', glow: 'rgba(232, 120, 58, 0.2)' },
-  square: { accent: '#d4a55a', glow: 'rgba(212, 165, 90, 0.2)' },
-}
+const accent = '#e8783a'
+const glow = 'rgba(232, 120, 58, 0.2)'
 
 export const dynamic = 'force-dynamic'
 
@@ -18,8 +16,6 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   const { slug } = await params
   const product = await getProduct(slug)
   if (!product) notFound()
-
-  const cfg = SHAPE_CONFIG[product.shape]
   const hasOffer = product.variants.some(v => v.active && v.sale_price != null)
   const images: string[] = (product as any).image_urls?.length
     ? (product as any).image_urls
@@ -39,7 +35,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           {/* Visual */}
           <div style={{
             aspectRatio: '1',
-            background: `radial-gradient(ellipse at 50% 70%, ${cfg.glow}, rgba(15, 7, 2, 0.95))`,
+            background: `radial-gradient(ellipse at 50% 70%, ${glow}, rgba(15, 7, 2, 0.95))`,
             border: '1px solid rgba(92, 53, 32, 0.4)', borderRadius: '16px',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             position: 'relative', overflow: 'hidden',
@@ -47,8 +43,8 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             <ProductImageGallery
               images={images}
               productName={product.name}
-              accentColor={cfg.accent}
-              glow={cfg.glow}
+              accentColor={accent}
+              glow={glow}
             />
             {hasOffer && (
               <div style={{ position: 'absolute', top: '1rem', right: '1rem', background: '#ef4444', color: 'white', fontSize: '0.75rem', fontWeight: 700, padding: '0.4rem 0.8rem', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '5px', zIndex: 3 }}>
@@ -90,7 +86,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
 
             <div style={{ background: 'rgba(45,26,14,0.4)', border: '1px solid rgba(92,53,32,0.35)', borderRadius: '10px', padding: '1.5rem', marginBottom: '1.5rem' }}>
               <AddToCartSection
-                productInfo={{ id: product.id, name: product.name, slug: product.slug, shape: product.shape }}
+                productInfo={{ id: product.id, name: product.name, slug: product.slug }}
                 variants={product.variants}
                 includes={product.includes ?? undefined}
               />

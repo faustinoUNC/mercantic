@@ -9,7 +9,6 @@ interface AddToCartSectionProps {
     id: string
     name: string
     slug: string
-    shape: 'round' | 'square'
   }
   variants: ProductVariant[]
   includes?: string[]

@@ -121,12 +121,12 @@ function StepCart({ onNext, appliedDiscount, onDiscountApply }: {
             }}>
               <div style={{
                 width: '48px', height: '48px', flexShrink: 0,
-                borderRadius: item.shape === 'round' ? '50%' : '8px',
+                borderRadius: '8px',
                 background: 'linear-gradient(145deg, #3d2415, #1a0f07)',
                 border: '1px solid rgba(196, 98, 45, 0.3)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
               }}>
-                <div style={{ width: '22px', height: '22px', borderRadius: item.shape === 'round' ? '50%' : '4px', background: 'radial-gradient(circle, rgba(245,158,11,0.4), rgba(196,98,45,0.2), transparent)', border: '1px solid rgba(196, 98, 45, 0.3)' }} />
+                <div style={{ width: '22px', height: '22px', borderRadius: '4px', background: 'radial-gradient(circle, rgba(245,158,11,0.4), rgba(196,98,45,0.2), transparent)', border: '1px solid rgba(196, 98, 45, 0.3)' }} />
               </div>
 
               <div style={{ flex: 1, minWidth: '140px' }}>

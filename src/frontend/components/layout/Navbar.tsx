@@ -60,7 +60,7 @@ export function Navbar() {
             {[
               { href: '/', label: 'Inicio' },
               { href: '/productos', label: 'Modelos' },
-              { href: '#contacto', label: 'Contacto' },
+              { href: '/contacto', label: 'Contacto' },
             ].map(({ href, label }) => (
               <Link key={href} href={href} style={{
                 color: '#c4a882',
@@ -145,7 +145,7 @@ export function Navbar() {
             {[
               { href: '/', label: 'Inicio' },
               { href: '/productos', label: 'Modelos' },
-              { href: '#contacto', label: 'Contacto' },
+              { href: '/contacto', label: 'Contacto' },
             ].map(({ href, label }) => (
               <Link key={href} href={href}
                 onClick={() => setMenuOpen(false)}

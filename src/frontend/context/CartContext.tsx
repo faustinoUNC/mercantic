@@ -7,7 +7,6 @@ export interface CartItem {
   productId: string
   productName: string
   productSlug: string
-  shape: 'round' | 'square'
   size: string
   color: string
   price: number

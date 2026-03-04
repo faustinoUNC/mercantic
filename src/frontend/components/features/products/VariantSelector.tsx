@@ -12,7 +12,6 @@ interface ProductInfo {
   id: string
   name: string
   slug: string
-  shape: 'round' | 'square'
 }
 
 interface VariantSelectorProps {
@@ -60,7 +59,6 @@ export function VariantSelector({ variants, includes, productInfo, onVariantChan
       productId: productInfo.id,
       productName: productInfo.name,
       productSlug: productInfo.slug,
-      shape: productInfo.shape,
       size: selectedVariant.size,
       color: selectedVariant.color,
       price: selectedVariant.price,

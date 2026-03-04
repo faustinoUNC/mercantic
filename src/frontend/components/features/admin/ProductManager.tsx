@@ -19,7 +19,7 @@ import {
 import { useProducts } from '@/frontend/hooks/useProducts'
 import type {
   ProductWithVariants, ProductVariant,
-  ProductShape, ProductSize, ProductColor,
+  ProductSize, ProductColor,
   CreateProductPayload, CreateVariantPayload,
 } from '@/backend/features/products/models/product.model'
 import { formatPrice } from '@/lib/utils/formatting'
@@ -28,7 +28,6 @@ import { formatPrice } from '@/lib/utils/formatting'
 
 const COLOR_LABEL: Record<string, string> = { negro: 'Negro', oxido: 'Óxido' }
 const COLOR_SWATCH: Record<string, string> = { negro: '#1a1a1a', oxido: '#8B4513' }
-const SHAPE_LABEL: Record<string, string> = { round: 'Redondo', square: 'Cuadrado' }
 const SIZES: ProductSize[] = ['1.25m', '1.50m']
 const COLORS: ProductColor[] = ['negro', 'oxido']
 
@@ -61,6 +60,7 @@ function ImageUploader({
     setUploading(true)
     const form = new FormData()
     form.append('file', file)
+    form.append('existing_urls', JSON.stringify(currentUrls))
     const res = await fetch(`/api/products/${productId}/image`, { method: 'POST', body: form })
     const data = await res.json()
     setUploading(false)
@@ -376,10 +376,12 @@ function ProductInfoEditor({
   product,
   onSave,
   onClose,
+  onEdit,
 }: {
   product: ProductWithVariants
   onSave: (id: string, payload: { description: string; material: string; includes: string[] }) => Promise<void>
   onClose: () => void
+  onEdit?: () => void
 }) {
   const [description, setDescription] = useState(product.description ?? '')
   const [material, setMaterial] = useState(product.material ?? '')
@@ -400,7 +402,7 @@ function ProductInfoEditor({
         <Label className="text-xs mb-1 block">Descripción</Label>
         <Textarea
           value={description}
-          onChange={e => setDescription(e.target.value)}
+          onChange={e => { setDescription(e.target.value); onEdit?.() }}
           rows={3}
           className="text-sm resize-none"
           placeholder="Descripción que se muestra en la página del producto"
@@ -409,11 +411,11 @@ function ProductInfoEditor({
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div>
           <Label className="text-xs mb-1 block">Material</Label>
-          <Input value={material} onChange={e => setMaterial(e.target.value)} className="h-8 text-sm" placeholder="Ej: Chapa 3,2mm" />
+          <Input value={material} onChange={e => { setMaterial(e.target.value); onEdit?.() }} className="h-8 text-sm" placeholder="Ej: Chapa 3,2mm" />
         </div>
         <div>
           <Label className="text-xs mb-1 block">Incluye (separado por comas)</Label>
-          <Input value={includesRaw} onChange={e => setIncludesRaw(e.target.value)} className="h-8 text-sm" placeholder="Parrilla, Estaca, Tapa" />
+          <Input value={includesRaw} onChange={e => { setIncludesRaw(e.target.value); onEdit?.() }} className="h-8 text-sm" placeholder="Parrilla, Estaca, Tapa" />
         </div>
       </div>
       <div className="flex gap-2">
@@ -453,19 +455,34 @@ function ProductEditModal({
 }) {
   const [addingVariant, setAddingVariant] = useState(false)
   const [editingInfo, setEditingInfo] = useState(false)
+  const [hasUnsavedInfo, setHasUnsavedInfo] = useState(false)
   const [imageUrls, setImageUrls] = useState<string[]>(
     product.image_urls?.length ? product.image_urls : product.image_url ? [product.image_url] : []
   )
 
+  function handleClose() {
+    if (hasUnsavedInfo && editingInfo) {
+      if (!window.confirm('Tenés cambios en la información sin guardar. ¿Cerrar de todas formas?')) return
+    }
+    setHasUnsavedInfo(false)
+    onClose()
+  }
+
   return (
-    <Dialog open={open} onOpenChange={v => { if (!v) onClose() }}>
+    <Dialog open={open} onOpenChange={v => { if (!v) handleClose() }}>
       <DialogContent className="w-full max-w-2xl max-h-[92vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Package className="w-5 h-5" /> {product.name}
-            <Badge variant="outline" className="text-xs ml-1">{SHAPE_LABEL[product.shape]}</Badge>
           </DialogTitle>
         </DialogHeader>
+
+        {hasUnsavedInfo && editingInfo && (
+          <div className="flex items-center gap-2 px-3 py-2 rounded-md bg-amber-500/10 border border-amber-500/30 text-amber-500 text-xs font-medium">
+            <Save className="w-3.5 h-3.5 flex-shrink-0" />
+            Cambios sin guardar en la información del producto
+          </div>
+        )}
 
         <div className="space-y-5 pt-2">
           {/* Toggles */}
@@ -501,7 +518,7 @@ function ProductEditModal({
               </Button>
             </div>
             {editingInfo
-              ? <ProductInfoEditor product={product} onSave={onUpdateProduct} onClose={() => setEditingInfo(false)} />
+              ? <ProductInfoEditor product={product} onSave={onUpdateProduct} onClose={() => { setEditingInfo(false); setHasUnsavedInfo(false) }} onEdit={() => setHasUnsavedInfo(true)} />
               : (
                 <div className="text-sm text-muted-foreground space-y-1">
                   <p>{product.description ?? <span className="italic">Sin descripción</span>}</p>
@@ -607,7 +624,6 @@ function ProductRow({
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5 flex-wrap">
             <span className="font-semibold text-sm truncate">{product.name}</span>
-            <Badge variant="outline" className="text-[10px] px-1 py-0">{SHAPE_LABEL[product.shape]}</Badge>
             {product.featured && <Star className="w-3 h-3 text-amber-500 fill-amber-500" />}
             {onSale > 0 && <Badge variant="destructive" className="text-[10px] px-1 py-0">{onSale} oferta</Badge>}
           </div>
@@ -685,7 +701,6 @@ function NewProductDialog({
   const [name, setName] = useState('')
   const [slug, setSlug] = useState('')
   const [slugEdited, setSlugEdited] = useState(false)
-  const [shape, setShape] = useState<ProductShape>('round')
   const [description, setDescription] = useState('')
   const [material, setMaterial] = useState('Chapa 3,2mm')
   const [includesRaw, setIncludesRaw] = useState('Parrilla, Estaca, Tapa')
@@ -712,7 +727,7 @@ function NewProductDialog({
     setSaving(true)
     setError('')
     const includes = includesRaw.split(',').map(s => s.trim()).filter(Boolean)
-    const result = await onCreateProduct({ name: name.trim(), slug: slug.trim(), shape, description: description.trim() || undefined, material: material.trim() || undefined, includes: includes.length ? includes : undefined })
+    const result = await onCreateProduct({ name: name.trim(), slug: slug.trim(), shape: 'round', description: description.trim() || undefined, material: material.trim() || undefined, includes: includes.length ? includes : undefined })
     if (!result.ok || !result.product) {
       setError('Error al crear el producto. ¿El slug ya existe?')
       setSaving(false)
@@ -732,7 +747,7 @@ function NewProductDialog({
     setSaving(false)
     setOpen(false)
     // Reset
-    setName(''); setSlug(''); setSlugEdited(false); setShape('round')
+    setName(''); setSlug(''); setSlugEdited(false)
     setDescription(''); setMaterial('Chapa 3,2mm'); setIncludesRaw('Parrilla, Estaca, Tapa')
     setVariants([{ size: '1.25m', color: 'negro', price: '', sale_price: '' }])
   }
@@ -772,24 +787,6 @@ function NewProductDialog({
                 className="text-sm font-mono"
               />
               <p className="text-xs text-muted-foreground mt-1">/productos/{slug || '…'}</p>
-            </div>
-          </div>
-
-          {/* Shape */}
-          <div>
-            <Label className="text-xs mb-2 block">Forma</Label>
-            <div className="flex gap-3">
-              {(['round', 'square'] as ProductShape[]).map(s => (
-                <button
-                  key={s}
-                  onClick={() => setShape(s)}
-                  className={`flex-1 py-3 rounded-lg border text-sm font-medium transition-all ${
-                    shape === s ? 'bg-primary text-primary-foreground border-primary' : 'border-input hover:bg-muted'
-                  }`}
-                >
-                  {SHAPE_LABEL[s]}
-                </button>
-              ))}
             </div>
           </div>
 

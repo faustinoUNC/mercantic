@@ -45,22 +45,25 @@ export async function POST(
   const { data: urlData } = supabase.storage.from(BUCKET).getPublicUrl(path)
   const image_url = `${urlData.publicUrl}?t=${Date.now()}`
 
-  // Fetch current image_urls array and append
-  const { data: product, error: fetchErr } = await supabase
-    .from('products')
-    .select('image_url, image_urls')
-    .eq('id', id)
-    .single()
-
+  // Use existing_urls sent by the client (authoritative) or fall back to DB query
+  const existingUrlsRaw = formData.get('existing_urls') as string | null
   let existing: string[] = []
-  if (fetchErr || !product) {
-    // Column may not exist yet — try fetching only image_url to preserve it
-    const { data: legacy } = await supabase.from('products').select('image_url').eq('id', id).single()
-    if (legacy?.image_url) existing = [legacy.image_url]
+  if (existingUrlsRaw) {
+    try { existing = JSON.parse(existingUrlsRaw) } catch { /* ignore */ }
   } else {
-    existing = (product.image_urls as string[] | null) ?? []
-    if (product.image_url && !existing.includes(product.image_url)) {
-      existing.unshift(product.image_url)
+    const { data: product, error: fetchErr } = await supabase
+      .from('products')
+      .select('image_url, image_urls')
+      .eq('id', id)
+      .single()
+    if (fetchErr || !product) {
+      const { data: legacy } = await supabase.from('products').select('image_url').eq('id', id).single()
+      if (legacy?.image_url) existing = [legacy.image_url]
+    } else {
+      existing = (product.image_urls as string[] | null) ?? []
+      if (product.image_url && !existing.includes(product.image_url)) {
+        existing.unshift(product.image_url)
+      }
     }
   }
   const image_urls = [...existing, image_url]
