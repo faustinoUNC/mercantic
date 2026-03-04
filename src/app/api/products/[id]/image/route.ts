@@ -18,8 +18,8 @@ async function persistUrls(
   id: string,
   image_urls: string[],
 ) {
-  const image_url = encodeImageUrls(image_urls)
-  await supabase.from('products').update({ image_url }).eq('id', id)
+  const image_url = image_urls[0] ?? null
+  await supabase.from('products').update({ image_url, image_urls }).eq('id', id)
 }
 
 async function loadExistingUrls(
@@ -28,10 +28,12 @@ async function loadExistingUrls(
 ): Promise<string[]> {
   const { data } = await supabase
     .from('products')
-    .select('image_url')
+    .select('image_url, image_urls')
     .eq('id', id)
     .single()
-  return decodeImageUrls((data as any)?.image_url ?? null)
+  const row = data as any
+  if (row?.image_urls?.length) return row.image_urls as string[]
+  return decodeImageUrls(row?.image_url ?? null)
 }
 
 // POST: Upload a new image (appends to image_url list)

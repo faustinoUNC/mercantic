@@ -6,10 +6,11 @@ import type {
   UpdateVariantPayload, UpdateProductPayload,
 } from '../models/product.model'
 
-/** Normalizes image_urls from the JSON-encoded image_url column. */
+/** Normalizes image_urls: prefers the text[] column, falls back to decoding image_url. */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function normalize(p: any): ProductWithVariants {
-  return { ...p, image_urls: decodeImageUrls(p.image_url) }
+  const image_urls = p.image_urls?.length ? p.image_urls : decodeImageUrls(p.image_url)
+  return { ...p, image_urls }
 }
 
 export async function getAllProducts(): Promise<ProductWithVariants[]> {
