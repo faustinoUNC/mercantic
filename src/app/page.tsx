@@ -13,8 +13,8 @@ export default function HomePage() {
       <Navbar />
       <main>
         <Hero />
-        <ProductShowcase />
         <NewLaunches />
+        <ProductShowcase />
         <Features />
         <HowItWorks />
         <CTA />
