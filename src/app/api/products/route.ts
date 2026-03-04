@@ -1,13 +1,17 @@
 import { NextRequest } from 'next/server'
 import {
-  handleList, handleListAdmin,
+  handleList, handleListAdmin, handleListDeleted,
   handleCreateProduct, handleCreateVariant,
-  handleUpdateProduct, handleUpdateVariant, handleDeleteVariant, handleDeleteProduct,
+  handleUpdateProduct, handleUpdateVariant,
+  handleDeleteVariant, handleDeleteProduct,
+  handleRestoreProduct,
 } from '@/backend/features/products/endpoints/product.endpoints'
 
 export async function GET(req: NextRequest) {
-  const admin = new URL(req.url).searchParams.get('admin') === 'true'
-  return admin ? handleListAdmin() : handleList()
+  const params = new URL(req.url).searchParams
+  if (params.get('deleted') === 'true') return handleListDeleted()
+  if (params.get('admin') === 'true') return handleListAdmin()
+  return handleList()
 }
 
 export async function POST(req: NextRequest) {
@@ -21,6 +25,7 @@ export async function PATCH(req: NextRequest) {
   const body = await req.json()
   const { type, id, ...payload } = body
   if (type === 'variant') return handleUpdateVariant(id, payload)
+  if (type === 'restore') return handleRestoreProduct(id)
   return handleUpdateProduct(id, payload)
 }
 

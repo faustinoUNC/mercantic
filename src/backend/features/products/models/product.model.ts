@@ -27,6 +27,7 @@ export interface Product {
   image_url: string | null
   image_urls: string[]
   created_at: string
+  deleted_at: string | null
   variants?: ProductVariant[]
 }
 

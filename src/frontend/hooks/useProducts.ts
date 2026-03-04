@@ -9,6 +9,7 @@ import type {
 
 export function useProducts(admin = false) {
   const [products, setProducts] = useState<ProductWithVariants[]>([])
+  const [deletedProducts, setDeletedProducts] = useState<ProductWithVariants[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
   const fetchProducts = useCallback(async () => {
@@ -18,6 +19,11 @@ export function useProducts(admin = false) {
       const res = await fetch(url)
       const data = await res.json()
       setProducts(data.products ?? [])
+      if (admin) {
+        const delRes = await fetch('/api/products?deleted=true')
+        const delData = await delRes.json()
+        setDeletedProducts(delData.products ?? [])
+      }
     } catch (err) {
       console.error('[useProducts] fetch error:', err)
     } finally {
@@ -87,7 +93,17 @@ export function useProducts(admin = false) {
     return res.ok
   }, [fetchProducts])
 
+  const restoreProduct = useCallback(async (id: string) => {
+    const res = await fetch('/api/products', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type: 'restore', id }),
+    })
+    if (res.ok) await fetchProducts()
+    return res.ok
+  }, [fetchProducts])
+
   useEffect(() => { fetchProducts() }, [fetchProducts])
 
-  return { products, isLoading, refresh: fetchProducts, createProduct, createVariant, updateProduct, updateVariant, deleteVariant, deleteProduct }
+  return { products, deletedProducts, isLoading, refresh: fetchProducts, createProduct, createVariant, updateProduct, updateVariant, deleteVariant, deleteProduct, restoreProduct }
 }

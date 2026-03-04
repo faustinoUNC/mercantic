@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/dialog'
 import {
   Package, Edit2, Save, X, Tag, Percent, ChevronDown, ChevronUp,
-  Plus, Star, Trash2, CircleCheck, ImagePlus, Loader2, Trash, Search,
+  Plus, Star, Trash2, CircleCheck, ImagePlus, Loader2, Trash, Search, ArchiveRestore,
 } from 'lucide-react'
 import { useProducts } from '@/frontend/hooks/useProducts'
 import type {
@@ -987,7 +987,7 @@ function NewProductDialog({
 // ─── Main export ──────────────────────────────────────────────────────────────
 
 export function ProductManager() {
-  const { products, isLoading, refresh, updateProduct, updateVariant, deleteVariant, deleteProduct, createProduct, createVariant } = useProducts(true)
+  const { products, deletedProducts, isLoading, refresh, updateProduct, updateVariant, deleteVariant, deleteProduct, restoreProduct, createProduct, createVariant } = useProducts(true)
   const [search, setSearch] = useState('')
 
   const handleUpdateVariant = async (id: string, payload: { price: number; sale_price: number | null; stock: number; active: boolean }) => {
@@ -1104,6 +1104,44 @@ export function ProductManager() {
           ))
         )}
       </Card>
+
+      {/* ── Archived products ── */}
+      {deletedProducts.length > 0 && (
+        <div className="mt-6">
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-3">
+            Archivados ({deletedProducts.length})
+          </p>
+          <Card>
+            <CardContent className="p-0 divide-y">
+              {deletedProducts.map(p => (
+                <div key={p.id} className="flex items-center gap-3 px-4 py-3">
+                  {/* Thumbnail */}
+                  {p.image_urls?.[0] ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={p.image_urls[0]} alt={p.name} className="w-10 h-10 rounded object-cover shrink-0 opacity-50" />
+                  ) : (
+                    <div className="w-10 h-10 rounded bg-muted shrink-0 opacity-50" />
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-muted-foreground line-through truncate">{p.name}</p>
+                    <p className="text-xs text-muted-foreground/60">
+                      Archivado {p.deleted_at ? new Date(p.deleted_at).toLocaleDateString('es-AR') : ''}
+                    </p>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="gap-1.5 text-xs h-7 shrink-0"
+                    onClick={() => restoreProduct(p.id)}
+                  >
+                    <ArchiveRestore className="w-3.5 h-3.5" /> Restaurar
+                  </Button>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   )
 }

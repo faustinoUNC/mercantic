@@ -19,6 +19,7 @@ export async function getAllProducts(): Promise<ProductWithVariants[]> {
     .from('products')
     .select('*, variants:product_variants(*)')
     .eq('active', true)
+    .is('deleted_at', null)
     .order('featured', { ascending: false })
     .order('created_at')
 
@@ -31,6 +32,7 @@ export async function getAllProductsAdmin(): Promise<ProductWithVariants[]> {
   const { data, error } = await supabase
     .from('products')
     .select('*, variants:product_variants(*)')
+    .is('deleted_at', null)
     .order('created_at')
 
   if (error) throw new Error(error.message)
@@ -43,6 +45,7 @@ export async function getProductBySlug(slug: string): Promise<ProductWithVariant
     .from('products')
     .select('*, variants:product_variants(*)')
     .eq('slug', slug)
+    .is('deleted_at', null)
     .single()
 
   if (error) return null
@@ -105,8 +108,35 @@ export async function deleteVariant(id: string): Promise<void> {
   if (error) throw new Error(error.message)
 }
 
+/** Soft delete: marks deleted_at instead of removing the row. */
 export async function deleteProduct(id: string): Promise<void> {
   const supabase = await createClient()
-  const { error } = await supabase.from('products').delete().eq('id', id)
+  const { error } = await supabase
+    .from('products')
+    .update({ deleted_at: new Date().toISOString() })
+    .eq('id', id)
   if (error) throw new Error(error.message)
+}
+
+/** Restore a soft-deleted product. */
+export async function restoreProduct(id: string): Promise<void> {
+  const supabase = await createClient()
+  const { error } = await supabase
+    .from('products')
+    .update({ deleted_at: null })
+    .eq('id', id)
+  if (error) throw new Error(error.message)
+}
+
+/** List soft-deleted products (for admin archive view). */
+export async function getDeletedProducts(): Promise<ProductWithVariants[]> {
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from('products')
+    .select('*, variants:product_variants(*)')
+    .not('deleted_at', 'is', null)
+    .order('deleted_at', { ascending: false })
+
+  if (error) throw new Error(error.message)
+  return (data as any[]).map(normalize)
 }

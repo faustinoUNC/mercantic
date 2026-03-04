@@ -40,3 +40,11 @@ export async function deleteVariant(id: string) {
 export async function deleteProduct(id: string) {
   return repo.deleteProduct(id)
 }
+
+export async function restoreProduct(id: string) {
+  return repo.restoreProduct(id)
+}
+
+export async function listDeletedProducts(): Promise<ProductWithVariants[]> {
+  return repo.getDeletedProducts()
+}

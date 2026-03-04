@@ -82,3 +82,21 @@ export async function handleDeleteProduct(id: string) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 }
+
+export async function handleRestoreProduct(id: string) {
+  try {
+    await service.restoreProduct(id)
+    return NextResponse.json({ success: true })
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+}
+
+export async function handleListDeleted() {
+  try {
+    const products = await service.listDeletedProducts()
+    return NextResponse.json({ products })
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+}
