@@ -1,9 +1,16 @@
 import { createClient } from '@/lib/supabase/server'
+import { decodeImageUrls } from '@/lib/utils/images'
 import type {
   Product, ProductWithVariants,
   CreateProductPayload, CreateVariantPayload,
   UpdateVariantPayload, UpdateProductPayload,
 } from '../models/product.model'
+
+/** Normalizes image_urls from the JSON-encoded image_url column. */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function normalize(p: any): ProductWithVariants {
+  return { ...p, image_urls: decodeImageUrls(p.image_url) }
+}
 
 export async function getAllProducts(): Promise<ProductWithVariants[]> {
   const supabase = await createClient()
@@ -15,7 +22,7 @@ export async function getAllProducts(): Promise<ProductWithVariants[]> {
     .order('created_at')
 
   if (error) throw new Error(error.message)
-  return data as ProductWithVariants[]
+  return (data as any[]).map(normalize)
 }
 
 export async function getAllProductsAdmin(): Promise<ProductWithVariants[]> {
@@ -26,7 +33,7 @@ export async function getAllProductsAdmin(): Promise<ProductWithVariants[]> {
     .order('created_at')
 
   if (error) throw new Error(error.message)
-  return data as ProductWithVariants[]
+  return (data as any[]).map(normalize)
 }
 
 export async function getProductBySlug(slug: string): Promise<ProductWithVariants | null> {
@@ -38,7 +45,7 @@ export async function getProductBySlug(slug: string): Promise<ProductWithVariant
     .single()
 
   if (error) return null
-  return data as ProductWithVariants
+  return normalize(data)
 }
 
 export async function createProduct(payload: CreateProductPayload): Promise<Product> {

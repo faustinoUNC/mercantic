@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { encodeImageUrls, decodeImageUrls } from '@/lib/utils/images'
 
 const BUCKET = 'product-images'
 const MAX_SIZE = 5 * 1024 * 1024
@@ -12,32 +13,28 @@ function adminClient() {
   )
 }
 
-/**
- * Persists image_urls (and image_url for legacy schemas) to the DB.
- * Tries combined update first; if it fails (e.g. image_url column missing)
- * falls back to updating each column independently so at least one succeeds.
- */
 async function persistUrls(
   supabase: ReturnType<typeof adminClient>,
   id: string,
   image_urls: string[],
 ) {
-  const image_url = image_urls[0] ?? null
-
-  // Attempt 1: update both columns at once (works when both columns exist)
-  const { error } = await supabase
-    .from('products')
-    .update({ image_url, image_urls })
-    .eq('id', id)
-
-  if (!error) return
-
-  // Attempt 2: update them independently (handles missing column gracefully)
-  await supabase.from('products').update({ image_urls }).eq('id', id)
+  const image_url = encodeImageUrls(image_urls)
   await supabase.from('products').update({ image_url }).eq('id', id)
 }
 
-// POST: Upload a new image (appends to image_urls array)
+async function loadExistingUrls(
+  supabase: ReturnType<typeof adminClient>,
+  id: string,
+): Promise<string[]> {
+  const { data } = await supabase
+    .from('products')
+    .select('image_url')
+    .eq('id', id)
+    .single()
+  return decodeImageUrls((data as any)?.image_url ?? null)
+}
+
+// POST: Upload a new image (appends to image_url list)
 export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -69,26 +66,13 @@ export async function POST(
   const { data: urlData } = supabase.storage.from(BUCKET).getPublicUrl(path)
   const newUrl = `${urlData.publicUrl}?t=${Date.now()}`
 
-  // Determine current list: prefer client-sent list (authoritative), fall back to DB
+  // Use client-sent list (authoritative) or fall back to DB
   const existingUrlsRaw = formData.get('existing_urls') as string | null
   let existing: string[] = []
-
   if (existingUrlsRaw) {
     try { existing = JSON.parse(existingUrlsRaw) } catch { /* ignore */ }
   } else {
-    const { data: product } = await supabase
-      .from('products')
-      .select('image_url, image_urls')
-      .eq('id', id)
-      .single()
-
-    if (product) {
-      existing = (product.image_urls as string[] | null) ?? []
-      // Fall back to image_url if image_urls is empty
-      if (existing.length === 0 && product.image_url) {
-        existing = [product.image_url as string]
-      }
-    }
+    existing = await loadExistingUrls(supabase, id)
   }
 
   const image_urls = [...existing, newUrl]
@@ -116,23 +100,12 @@ export async function DELETE(
   } catch { /* no body — remove all */ }
 
   // Use client-provided list (authoritative) or fall back to DB
-  let existing: string[]
-  if (clientUrls && clientUrls.length > 0) {
-    existing = clientUrls
-  } else {
-    const { data: product } = await supabase
-      .from('products')
-      .select('image_url, image_urls')
-      .eq('id', id)
-      .single()
-    existing = (product?.image_urls as string[] | null) ?? []
-    if (existing.length === 0 && (product as any)?.image_url) {
-      existing = [(product as any).image_url as string]
-    }
-  }
+  const existing = (clientUrls && clientUrls.length > 0)
+    ? clientUrls
+    : await loadExistingUrls(supabase, id)
 
   if (removeIndex !== undefined && removeIndex >= 0 && removeIndex < existing.length) {
-    // Remove single image
+    // Remove single image from storage
     const urlToRemove = existing[removeIndex]
     const storagePath = urlToRemove.split('/storage/v1/object/public/' + BUCKET + '/')[1]?.split('?')[0]
     if (storagePath) {
@@ -143,7 +116,7 @@ export async function DELETE(
     return NextResponse.json({ image_url: image_urls[0] ?? null, image_urls })
   }
 
-  // Remove all
+  // Remove all images from storage
   const { data: files } = await supabase.storage.from(BUCKET).list(id)
   if (files && files.length > 0) {
     await supabase.storage.from(BUCKET).remove(files.map(f => `${id}/${f.name}`))
