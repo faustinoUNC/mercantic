@@ -732,9 +732,11 @@ interface VariantDraft {
 function NewProductDialog({
   onCreateProduct,
   onCreateVariant,
+  onRefresh,
 }: {
   onCreateProduct: (p: CreateProductPayload) => Promise<{ ok: boolean; product?: { id: string } }>
   onCreateVariant: (p: CreateVariantPayload) => Promise<{ ok: boolean }>
+  onRefresh?: () => void
 }) {
   const [open, setOpen] = useState(false)
   const [name, setName] = useState('')
@@ -790,6 +792,7 @@ function NewProductDialog({
   }
 
   function handleFinish() {
+    onRefresh?.()
     setOpen(false)
     setCreatedProductId(null)
     setImageUrls([])
@@ -1047,7 +1050,7 @@ export function ProductManager() {
             {totalOnSale > 0 && ` · ${totalOnSale} en oferta`}
           </p>
         </div>
-        <NewProductDialog onCreateProduct={createProduct} onCreateVariant={handleCreateVariant} />
+        <NewProductDialog onCreateProduct={createProduct} onCreateVariant={handleCreateVariant} onRefresh={refresh} />
       </div>
 
       {/* Search + table */}
