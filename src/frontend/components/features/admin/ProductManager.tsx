@@ -492,7 +492,12 @@ function ProductEditModal({
 
   return (
     <Dialog open={open} onOpenChange={v => { if (!v) handleClose() }}>
-      <DialogContent className="w-full max-w-2xl max-h-[92vh] overflow-y-auto" onInteractOutside={e => e.preventDefault()}>
+      <DialogContent
+        className="w-full max-w-2xl max-h-[92vh] overflow-y-auto"
+        onInteractOutside={e => e.preventDefault()}
+        onPointerDownOutside={e => e.preventDefault()}
+        onFocusOutside={e => e.preventDefault()}
+      >
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Package className="w-5 h-5" /> {product.name}
@@ -800,7 +805,12 @@ function NewProductDialog({
           <Plus className="w-4 h-4" /> Nuevo Producto
         </Button>
       </DialogTrigger>
-      <DialogContent className="w-full max-w-2xl max-h-[92vh] overflow-y-auto" onInteractOutside={e => e.preventDefault()}>
+      <DialogContent
+        className="w-full max-w-2xl max-h-[92vh] overflow-y-auto"
+        onInteractOutside={e => e.preventDefault()}
+        onPointerDownOutside={e => e.preventDefault()}
+        onFocusOutside={e => e.preventDefault()}
+      >
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Package className="w-5 h-5" /> {createdProductId ? `${name} — Imágenes` : 'Nuevo Producto'}
@@ -1005,7 +1015,10 @@ export function ProductManager() {
     await deleteProduct(id)
   }
 
-  if (isLoading) {
+  // Only show skeleton on initial load (products not yet fetched).
+  // Subsequent refreshes (after image upload, toggle, etc.) must NOT unmount
+  // open dialogs — that would silently close them mid-interaction.
+  if (isLoading && products.length === 0) {
     return (
       <div className="space-y-2">
         {[0, 1, 2].map(i => (
