@@ -130,7 +130,7 @@ export function Hero() {
             fontWeight: 600,
             whiteSpace: 'nowrap',
           }}>
-            Artesanal · Chapa 3,2mm · Hecho a mano
+            Alta Calidad · Chapa 3,2mm · Hecho a mano
           </span>
           <div className="eyebrow-line" style={{ width: '32px', height: '1px', background: 'rgba(196, 98, 45, 0.6)', flexShrink: 0 }} />
         </motion.div>
@@ -156,6 +156,7 @@ export function Hero() {
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
             backgroundClip: 'text',
+            paddingBottom: '0.12em',
           }}>
             Forjados
           </span>
@@ -189,8 +190,8 @@ export function Hero() {
             padding: '0 0.5rem',
           }}
         >
-          Fogoneros artesanales hechos a mano con chapa de 3,2 mm.
-          Diseñados para durar toda la vida.
+          Fogoneros artesanales de alta calidad, hechos a mano con chapa de 3,2 mm.
+          Materiales premium. Diseñados para durar toda la vida.
         </motion.p>
 
         {/* CTAs */}
@@ -249,6 +250,41 @@ export function Hero() {
           >
             Consultar por WhatsApp
           </a>
+        </motion.div>
+
+        {/* Quality pillars */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 1.0 }}
+          style={{
+            display: 'flex',
+            justifyContent: 'center',
+            gap: 'clamp(1.2rem, 4vw, 2.5rem)',
+            marginTop: '2rem',
+            flexWrap: 'wrap',
+          }}
+        >
+          {[
+            { label: 'Calidad premium' },
+            { label: 'Garantía de por vida' },
+            { label: 'Fabricación local' },
+          ].map(({ label }) => (
+            <div key={label} style={{
+              display: 'flex', alignItems: 'center', gap: '6px',
+              color: 'rgba(196,168,130,0.55)',
+              fontSize: '0.72rem',
+              letterSpacing: '0.08em',
+              textTransform: 'uppercase',
+              fontWeight: 500,
+            }}>
+              <div style={{
+                width: '4px', height: '4px', borderRadius: '50%',
+                background: '#c4622d', flexShrink: 0,
+              }} />
+              {label}
+            </div>
+          ))}
         </motion.div>
 
         {/* Scroll hint — hidden on small mobile */}
