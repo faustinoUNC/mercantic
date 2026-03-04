@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/dialog'
 import {
   Package, Edit2, Save, X, Tag, Percent, ChevronDown, ChevronUp,
-  Plus, Star, Trash2, CircleCheck, ImagePlus, Loader2, Trash,
+  Plus, Star, Trash2, CircleCheck, ImagePlus, Loader2, Trash, Search,
 } from 'lucide-react'
 import { useProducts } from '@/frontend/hooks/useProducts'
 import type {
@@ -428,10 +428,12 @@ function ProductInfoEditor({
   )
 }
 
-// ─── ProductCard ──────────────────────────────────────────────────────────────
+// ─── ProductEditModal ─────────────────────────────────────────────────────────
 
-function ProductCard({
+function ProductEditModal({
   product,
+  open,
+  onClose,
   onUpdateVariant,
   onDeleteVariant,
   onUpdateProduct,
@@ -440,6 +442,8 @@ function ProductCard({
   onCreateVariant,
 }: {
   product: ProductWithVariants
+  open: boolean
+  onClose: () => void
   onUpdateVariant: (id: string, p: { price: number; sale_price: number | null; stock: number; active: boolean }) => Promise<void>
   onDeleteVariant: (id: string) => Promise<void>
   onUpdateProduct: (id: string, p: { description: string; material: string; includes: string[] }) => Promise<void>
@@ -447,18 +451,130 @@ function ProductCard({
   onToggleFeatured: (id: string, featured: boolean) => Promise<void>
   onCreateVariant: (p: CreateVariantPayload) => Promise<{ ok: boolean }>
 }) {
-  const [togglingActive, setTogglingActive] = useState(false)
-  const [togglingFeatured, setTogglingFeatured] = useState(false)
-  const [editingInfo, setEditingInfo] = useState(false)
   const [addingVariant, setAddingVariant] = useState(false)
-  const [variantsOpen, setVariantsOpen] = useState(true)
+  const [editingInfo, setEditingInfo] = useState(false)
   const [imageUrls, setImageUrls] = useState<string[]>(
-    (product as any).image_urls?.length
-      ? (product as any).image_urls
-      : product.image_url ? [product.image_url] : []
+    product.image_urls?.length ? product.image_urls : product.image_url ? [product.image_url] : []
   )
 
-  const activeSales = product.variants.filter(v => v.sale_price != null).length
+  return (
+    <Dialog open={open} onOpenChange={v => { if (!v) onClose() }}>
+      <DialogContent className="w-full max-w-2xl max-h-[92vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Package className="w-5 h-5" /> {product.name}
+            <Badge variant="outline" className="text-xs ml-1">{SHAPE_LABEL[product.shape]}</Badge>
+          </DialogTitle>
+        </DialogHeader>
+
+        <div className="space-y-5 pt-2">
+          {/* Toggles */}
+          <div className="flex items-center gap-6 flex-wrap">
+            <div className="flex items-center gap-2">
+              <Switch
+                checked={product.active}
+                onCheckedChange={v => onToggleActive(product.id, v)}
+              />
+              <Label className="text-sm">{product.active ? 'Activo' : 'Inactivo'}</Label>
+            </div>
+            <button
+              onClick={() => onToggleFeatured(product.id, !product.featured)}
+              className={`flex items-center gap-1.5 text-sm px-3 py-1.5 rounded border transition-all ${
+                product.featured
+                  ? 'bg-amber-500/20 border-amber-500/40 text-amber-600'
+                  : 'border-input text-muted-foreground hover:bg-muted'
+              }`}
+            >
+              <Star className={`w-3.5 h-3.5 ${product.featured ? 'fill-amber-500' : ''}`} />
+              {product.featured ? 'Destacado' : 'Marcar destacado'}
+            </button>
+          </div>
+
+          <Separator />
+
+          {/* Product info */}
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Información</Label>
+              <Button size="sm" variant="ghost" className="h-7 gap-1 text-xs" onClick={() => setEditingInfo(v => !v)}>
+                <Edit2 className="w-3 h-3" /> {editingInfo ? 'Cerrar' : 'Editar'}
+              </Button>
+            </div>
+            {editingInfo
+              ? <ProductInfoEditor product={product} onSave={onUpdateProduct} onClose={() => setEditingInfo(false)} />
+              : (
+                <div className="text-sm text-muted-foreground space-y-1">
+                  <p>{product.description ?? <span className="italic">Sin descripción</span>}</p>
+                  {product.material && <p className="text-xs">Material: {product.material}</p>}
+                  {product.includes?.length > 0 && <p className="text-xs">Incluye: {product.includes.join(', ')}</p>}
+                </div>
+              )
+            }
+          </div>
+
+          <Separator />
+
+          {/* Images */}
+          <ImageUploader productId={product.id} currentUrls={imageUrls} onUpdated={setImageUrls} />
+
+          <Separator />
+
+          {/* Variants */}
+          <div>
+            <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 block">
+              Variantes ({product.variants.length})
+            </Label>
+            <div className="divide-y">
+              {product.variants.map(v => (
+                <VariantRow key={v.id} variant={v} onSave={onUpdateVariant} onDelete={onDeleteVariant} />
+              ))}
+            </div>
+            {addingVariant ? (
+              <AddVariantForm productId={product.id} onCreate={onCreateVariant} onClose={() => setAddingVariant(false)} />
+            ) : (
+              <Button size="sm" variant="outline" className="mt-3 h-7 gap-1 text-xs" onClick={() => setAddingVariant(true)}>
+                <Plus className="w-3 h-3" /> Agregar variante
+              </Button>
+            )}
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+// ─── ProductRow ───────────────────────────────────────────────────────────────
+
+function ProductRow({
+  product,
+  onUpdateVariant,
+  onDeleteVariant,
+  onUpdateProduct,
+  onToggleActive,
+  onToggleFeatured,
+  onCreateVariant,
+  onDeleteProduct,
+}: {
+  product: ProductWithVariants
+  onUpdateVariant: (id: string, p: { price: number; sale_price: number | null; stock: number; active: boolean }) => Promise<void>
+  onDeleteVariant: (id: string) => Promise<void>
+  onUpdateProduct: (id: string, p: { description: string; material: string; includes: string[] }) => Promise<void>
+  onToggleActive: (id: string, active: boolean) => Promise<void>
+  onToggleFeatured: (id: string, featured: boolean) => Promise<void>
+  onCreateVariant: (p: CreateVariantPayload) => Promise<{ ok: boolean }>
+  onDeleteProduct: (id: string) => Promise<void>
+}) {
+  const [editOpen, setEditOpen] = useState(false)
+  const [confirmDelete, setConfirmDelete] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+  const [togglingActive, setTogglingActive] = useState(false)
+
+  const thumb = product.image_urls?.[0] ?? product.image_url ?? null
+  const activeVariants = product.variants.filter(v => v.active)
+  const prices = activeVariants.map(v => v.sale_price ?? v.price)
+  const priceMin = prices.length ? Math.min(...prices) : null
+  const priceMax = prices.length ? Math.max(...prices) : null
+  const onSale = product.variants.filter(v => v.sale_price != null).length
 
   const handleToggleActive = async (v: boolean) => {
     setTogglingActive(true)
@@ -466,132 +582,86 @@ function ProductCard({
     setTogglingActive(false)
   }
 
-  const handleToggleFeatured = async () => {
-    setTogglingFeatured(true)
-    await onToggleFeatured(product.id, !product.featured)
-    setTogglingFeatured(false)
+  const handleDelete = async () => {
+    setDeleting(true)
+    await onDeleteProduct(product.id)
+    setDeleting(false)
+    setConfirmDelete(false)
   }
 
   return (
-    <Card className={product.featured ? 'border-amber-500/50 bg-amber-500/5' : ''}>
-      <CardHeader className="pb-3">
-        <div className="flex items-start justify-between gap-3">
-          {/* Thumbnail */}
-          {imageUrls[0] && (
+    <>
+      <div className={`flex items-center gap-3 px-4 py-3 border-b last:border-b-0 hover:bg-muted/30 transition-colors ${product.featured ? 'bg-amber-500/5' : ''}`}>
+        {/* Thumbnail */}
+        <div className="w-10 h-10 flex-shrink-0 rounded-md border overflow-hidden bg-muted">
+          {thumb
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={imageUrls[0]} alt={product.name} className="w-16 h-16 object-cover rounded-lg border flex-shrink-0" />
-          )}
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-1 flex-wrap">
-              <CardTitle className="text-lg">{product.name}</CardTitle>
-              <Badge variant="outline" className="text-xs">{SHAPE_LABEL[product.shape]}</Badge>
-              {product.featured && (
-                <Badge className="text-xs gap-1 bg-amber-500/20 text-amber-600 border-amber-500/30">
-                  <Star className="w-3 h-3 fill-amber-500" /> Destacado
-                </Badge>
-              )}
-              {activeSales > 0 && (
-                <Badge variant="destructive" className="text-xs gap-1">
-                  <Tag className="w-3 h-3" /> {activeSales} en oferta
-                </Badge>
-              )}
-            </div>
-            <CardDescription className="line-clamp-2 text-xs">
-              {product.description ?? 'Sin descripción — haz clic en Editar para agregar'}
-            </CardDescription>
-          </div>
-
-          {/* Controls */}
-          <div className="flex flex-col items-end gap-2 flex-shrink-0">
-            {/* Featured + Active on same row for desktop */}
-            <div className="flex items-center gap-3 flex-wrap justify-end">
-              <button
-                onClick={handleToggleFeatured}
-                disabled={togglingFeatured}
-                title={product.featured ? 'Quitar de destacados' : 'Marcar como destacado'}
-                className={`flex items-center gap-1 text-xs px-2 py-1 rounded border transition-all ${
-                  product.featured
-                    ? 'bg-amber-500/20 border-amber-500/40 text-amber-600 hover:bg-amber-500/30'
-                    : 'border-input text-muted-foreground hover:bg-muted hover:text-foreground'
-                }`}
-              >
-                <Star className={`w-3.5 h-3.5 ${product.featured ? 'fill-amber-500' : ''}`} />
-                <span className="hidden sm:inline">{product.featured ? 'Destacado' : 'Destacar'}</span>
-              </button>
-              <div className="flex items-center gap-2">
-                <Label className="text-xs text-muted-foreground whitespace-nowrap">
-                  {product.active ? 'Activo' : 'Inactivo'}
-                </Label>
-                <Switch
-                  checked={product.active}
-                  onCheckedChange={handleToggleActive}
-                  disabled={togglingActive}
-                />
+            ? <img src={thumb} alt={product.name} className="w-full h-full object-cover" />
+            : <div className="w-full h-full flex items-center justify-center text-muted-foreground/40">
+                <Package className="w-4 h-4" />
               </div>
-            </div>
-            <Button
-              size="sm"
-              variant="outline"
-              className="h-7 gap-1 text-xs"
-              onClick={() => setEditingInfo(v => !v)}
-            >
-              <Edit2 className="w-3 h-3" />
-              {editingInfo ? 'Cerrar' : 'Editar info'}
-            </Button>
+          }
+        </div>
+
+        {/* Name + badges */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span className="font-semibold text-sm truncate">{product.name}</span>
+            <Badge variant="outline" className="text-[10px] px-1 py-0">{SHAPE_LABEL[product.shape]}</Badge>
+            {product.featured && <Star className="w-3 h-3 text-amber-500 fill-amber-500" />}
+            {onSale > 0 && <Badge variant="destructive" className="text-[10px] px-1 py-0">{onSale} oferta</Badge>}
+          </div>
+          <div className="text-xs text-muted-foreground mt-0.5">
+            {product.variants.length} variante{product.variants.length !== 1 ? 's' : ''}
+            {priceMin !== null && (
+              <> · {formatPrice(priceMin)}{priceMin !== priceMax && priceMax !== null && ` – ${formatPrice(priceMax)}`}</>
+            )}
           </div>
         </div>
 
-        {editingInfo && (
-          <>
-            <Separator className="mt-2" />
-            <ProductInfoEditor product={product} onSave={onUpdateProduct} onClose={() => setEditingInfo(false)} />
-            <Separator />
-            <ImageUploader
-              productId={product.id}
-              currentUrls={imageUrls}
-              onUpdated={setImageUrls}
-            />
-          </>
-        )}
-      </CardHeader>
+        {/* Active toggle */}
+        <Switch
+          checked={product.active}
+          onCheckedChange={handleToggleActive}
+          disabled={togglingActive}
+          className="flex-shrink-0"
+        />
 
-      <CardContent className="pt-0">
-        <button
-          className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 hover:text-foreground transition-colors w-full"
-          onClick={() => setVariantsOpen(v => !v)}
-        >
-          {variantsOpen ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
-          Variantes ({product.variants.length})
-        </button>
-
-        {variantsOpen && (
-          <>
-            <div className="divide-y">
-              {product.variants.map(v => (
-                <VariantRow key={v.id} variant={v} onSave={onUpdateVariant} onDelete={onDeleteVariant} />
-              ))}
-            </div>
-
-            {addingVariant ? (
-              <AddVariantForm
-                productId={product.id}
-                onCreate={onCreateVariant}
-                onClose={() => setAddingVariant(false)}
-              />
-            ) : (
-              <Button
-                size="sm"
-                variant="outline"
-                className="mt-3 h-7 gap-1 text-xs"
-                onClick={() => setAddingVariant(true)}
-              >
-                <Plus className="w-3 h-3" /> Agregar variante
+        {/* Actions */}
+        <div className="flex items-center gap-1 flex-shrink-0">
+          <Button size="sm" variant="outline" className="h-7 gap-1 text-xs" onClick={() => setEditOpen(true)}>
+            <Edit2 className="w-3 h-3" /> Editar
+          </Button>
+          {confirmDelete ? (
+            <div className="flex items-center gap-1">
+              <span className="text-xs text-destructive whitespace-nowrap">¿Eliminar?</span>
+              <Button size="sm" variant="destructive" className="h-7 text-xs" onClick={handleDelete} disabled={deleting}>
+                {deleting ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Sí'}
               </Button>
-            )}
-          </>
-        )}
-      </CardContent>
-    </Card>
+              <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => setConfirmDelete(false)}>No</Button>
+            </div>
+          ) : (
+            <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive" onClick={() => setConfirmDelete(true)}>
+              <Trash2 className="w-3.5 h-3.5" />
+            </Button>
+          )}
+        </div>
+      </div>
+
+      {editOpen && (
+        <ProductEditModal
+          product={product}
+          open={editOpen}
+          onClose={() => setEditOpen(false)}
+          onUpdateVariant={onUpdateVariant}
+          onDeleteVariant={onDeleteVariant}
+          onUpdateProduct={onUpdateProduct}
+          onToggleActive={onToggleActive}
+          onToggleFeatured={onToggleFeatured}
+          onCreateVariant={onCreateVariant}
+        />
+      )}
+    </>
   )
 }
 
@@ -852,7 +922,8 @@ function NewProductDialog({
 // ─── Main export ──────────────────────────────────────────────────────────────
 
 export function ProductManager() {
-  const { products, isLoading, updateProduct, updateVariant, deleteVariant, createProduct, createVariant } = useProducts(true)
+  const { products, isLoading, updateProduct, updateVariant, deleteVariant, deleteProduct, createProduct, createVariant } = useProducts(true)
+  const [search, setSearch] = useState('')
 
   const handleUpdateVariant = async (id: string, payload: { price: number; sale_price: number | null; stock: number; active: boolean }) => {
     await updateVariant(id, payload)
@@ -878,52 +949,79 @@ export function ProductManager() {
     return createVariant(payload)
   }
 
+  const handleDeleteProduct = async (id: string) => {
+    await deleteProduct(id)
+  }
+
   if (isLoading) {
     return (
-      <div className="space-y-4">
-        {[0, 1].map(i => (
-          <div key={i} className="h-40 rounded-lg bg-muted/40 animate-pulse" />
+      <div className="space-y-2">
+        {[0, 1, 2].map(i => (
+          <div key={i} className="h-16 rounded-lg bg-muted/40 animate-pulse" />
         ))}
       </div>
     )
   }
 
+  const filtered = search.trim()
+    ? products.filter(p => p.name.toLowerCase().includes(search.toLowerCase()) || p.slug.includes(search.toLowerCase()))
+    : products
+
   const totalOnSale = products.reduce((acc, p) => acc + p.variants.filter(v => v.sale_price != null).length, 0)
   const featuredCount = products.filter(p => p.featured).length
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex items-start gap-3">
-          <Package className="w-5 h-5 text-muted-foreground mt-0.5" />
-          <div>
-            <h2 className="text-lg font-semibold">Gestión de Productos</h2>
-            <p className="text-sm text-muted-foreground">
-              {products.length} modelo{products.length !== 1 ? 's' : ''}
-              {featuredCount > 0 && ` · ${featuredCount} destacado${featuredCount !== 1 ? 's' : ''}`}
-              {totalOnSale > 0 && ` · ${totalOnSale} en oferta`}
-            </p>
-          </div>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <h2 className="text-lg font-semibold">Gestión de Productos</h2>
+          <p className="text-sm text-muted-foreground">
+            {products.length} modelo{products.length !== 1 ? 's' : ''}
+            {featuredCount > 0 && ` · ${featuredCount} destacado${featuredCount !== 1 ? 's' : ''}`}
+            {totalOnSale > 0 && ` · ${totalOnSale} en oferta`}
+          </p>
         </div>
         <NewProductDialog onCreateProduct={createProduct} onCreateVariant={handleCreateVariant} />
       </div>
 
-      {/* Product cards */}
-      {products.length === 0 ? (
-        <Card>
+      {/* Search + table */}
+      <Card>
+        {/* Search bar */}
+        <div className="px-4 py-3 border-b">
+          <div className="relative max-w-xs">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+            <Input
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Buscar por nombre…"
+              className="pl-8 h-8 text-sm"
+            />
+          </div>
+        </div>
+
+        {/* Column headers */}
+        <div className="hidden sm:flex items-center gap-3 px-4 py-2 bg-muted/30 text-xs font-semibold uppercase tracking-wider text-muted-foreground border-b">
+          <div className="w-10 flex-shrink-0" />
+          <div className="flex-1">Producto</div>
+          <div className="w-16 text-center">Activo</div>
+          <div className="w-40 text-right">Acciones</div>
+        </div>
+
+        {/* Rows */}
+        {filtered.length === 0 ? (
           <CardContent className="flex flex-col items-center justify-center py-16 text-center gap-4">
-            <Package className="w-12 h-12 text-muted-foreground/40" />
+            <Package className="w-10 h-10 text-muted-foreground/40" />
             <div>
-              <p className="font-medium">No hay productos todavía</p>
-              <p className="text-sm text-muted-foreground mt-1">Creá el primer producto con el botón de arriba</p>
+              <p className="font-medium">{search ? 'Sin resultados' : 'No hay productos todavía'}</p>
+              <p className="text-sm text-muted-foreground mt-1">
+                {search ? 'Probá con otro nombre' : 'Creá el primer producto con el botón de arriba'}
+              </p>
             </div>
           </CardContent>
-        </Card>
-      ) : (
-        <div className="space-y-4">
-          {products.map(p => (
-            <ProductCard
+        ) : (
+          filtered.map(p => (
+            <ProductRow
               key={p.id}
               product={p}
               onUpdateVariant={handleUpdateVariant}
@@ -932,10 +1030,11 @@ export function ProductManager() {
               onToggleActive={handleToggleActive}
               onToggleFeatured={handleToggleFeatured}
               onCreateVariant={handleCreateVariant}
+              onDeleteProduct={handleDeleteProduct}
             />
-          ))}
-        </div>
-      )}
+          ))
+        )}
+      </Card>
     </div>
   )
 }

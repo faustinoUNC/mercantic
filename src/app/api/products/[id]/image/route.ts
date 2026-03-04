@@ -46,16 +46,22 @@ export async function POST(
   const image_url = `${urlData.publicUrl}?t=${Date.now()}`
 
   // Fetch current image_urls array and append
-  const { data: product } = await supabase
+  const { data: product, error: fetchErr } = await supabase
     .from('products')
     .select('image_url, image_urls')
     .eq('id', id)
     .single()
 
-  const existing: string[] = (product?.image_urls as string[] | null) ?? []
-  // Also include legacy image_url if present and not already in the array
-  if (product?.image_url && !existing.includes(product.image_url)) {
-    existing.unshift(product.image_url)
+  let existing: string[] = []
+  if (fetchErr || !product) {
+    // Column may not exist yet — try fetching only image_url to preserve it
+    const { data: legacy } = await supabase.from('products').select('image_url').eq('id', id).single()
+    if (legacy?.image_url) existing = [legacy.image_url]
+  } else {
+    existing = (product.image_urls as string[] | null) ?? []
+    if (product.image_url && !existing.includes(product.image_url)) {
+      existing.unshift(product.image_url)
+    }
   }
   const image_urls = [...existing, image_url]
 
@@ -65,9 +71,9 @@ export async function POST(
     .eq('id', id)
 
   if (dbError) {
-    // Fallback: column may not exist yet — just update image_url
-    await supabase.from('products').update({ image_url }).eq('id', id)
-    return NextResponse.json({ image_url, image_urls: [image_url] })
+    // image_urls column not migrated yet — update only image_url preserving nothing extra
+    await supabase.from('products').update({ image_url: image_urls[0] }).eq('id', id)
+    return NextResponse.json({ image_url: image_urls[0], image_urls })
   }
 
   return NextResponse.json({ image_url, image_urls })

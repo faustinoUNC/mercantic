@@ -77,7 +77,17 @@ export function useProducts(admin = false) {
     return res.ok
   }, [fetchProducts])
 
+  const deleteProduct = useCallback(async (id: string) => {
+    const res = await fetch('/api/products', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type: 'product', id }),
+    })
+    if (res.ok) await fetchProducts()
+    return res.ok
+  }, [fetchProducts])
+
   useEffect(() => { fetchProducts() }, [fetchProducts])
 
-  return { products, isLoading, refresh: fetchProducts, createProduct, createVariant, updateProduct, updateVariant, deleteVariant }
+  return { products, isLoading, refresh: fetchProducts, createProduct, createVariant, updateProduct, updateVariant, deleteVariant, deleteProduct }
 }

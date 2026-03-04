@@ -73,3 +73,12 @@ export async function handleDeleteVariant(id: string) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 }
+
+export async function handleDeleteProduct(id: string) {
+  try {
+    await service.deleteProduct(id)
+    return NextResponse.json({ success: true })
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+}

@@ -36,3 +36,7 @@ export async function updateVariant(id: string, payload: UpdateVariantPayload) {
 export async function deleteVariant(id: string) {
   return repo.deleteVariant(id)
 }
+
+export async function deleteProduct(id: string) {
+  return repo.deleteProduct(id)
+}

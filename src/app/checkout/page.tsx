@@ -53,10 +53,43 @@ function ProgressBar({ step }: { step: Step }) {
 }
 
 // ── Step 1: Cart Review ──────────────────────────────────────────────────────
-function StepCart({ onNext }: { onNext: () => void }) {
+interface AppliedDiscount { code: string; percentage: number; codeId: string }
+
+function StepCart({ onNext, appliedDiscount, onDiscountApply }: {
+  onNext: () => void
+  appliedDiscount: AppliedDiscount | null
+  onDiscountApply: (d: AppliedDiscount | null) => void
+}) {
   const { items, subtotal, removeItem, updateQuantity } = useCart()
-  const [discountCode, setDiscountCode] = useState('')
+  const [discountCode, setDiscountCode] = useState(appliedDiscount?.code ?? '')
   const [discountError, setDiscountError] = useState('')
+  const [applyingCode, setApplyingCode] = useState(false)
+
+  const finalTotal = appliedDiscount ? Math.round(subtotal * (1 - appliedDiscount.percentage / 100)) : subtotal
+
+  async function handleApplyCode() {
+    if (!discountCode.trim()) return
+    setApplyingCode(true)
+    setDiscountError('')
+    try {
+      const res = await fetch('/api/discounts/validate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: discountCode.trim() }),
+      })
+      const data = await res.json()
+      if (!res.ok || !data.valid) {
+        setDiscountError(data.error ?? 'Código no válido o expirado')
+        onDiscountApply(null)
+      } else {
+        onDiscountApply({ code: discountCode.trim(), percentage: data.discount_percentage, codeId: data.discount_code_id })
+      }
+    } catch {
+      setDiscountError('Error al validar el código')
+    } finally {
+      setApplyingCode(false)
+    }
+  }
 
   if (items.length === 0) {
     return (
@@ -146,19 +179,27 @@ function StepCart({ onNext }: { onNext: () => void }) {
             />
           </div>
           <button
-            onClick={() => setDiscountError('Código no válido o expirado')}
+            onClick={handleApplyCode}
+            disabled={applyingCode || !discountCode.trim()}
             style={{
               padding: '0.7rem 1.25rem', background: 'rgba(92,53,32,0.3)',
               border: '1px solid rgba(92,53,32,0.4)', borderRadius: '6px',
-              color: '#c4a882', fontSize: '0.82rem', cursor: 'pointer', fontWeight: 600, whiteSpace: 'nowrap',
+              color: '#c4a882', fontSize: '0.82rem', cursor: applyingCode ? 'not-allowed' : 'pointer', fontWeight: 600, whiteSpace: 'nowrap',
+              opacity: applyingCode || !discountCode.trim() ? 0.6 : 1,
             }}
           >
-            Aplicar
+            {applyingCode ? '...' : 'Aplicar'}
           </button>
         </div>
         {discountError && (
           <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '0.4rem', color: '#ef4444', fontSize: '0.78rem' }}>
             <AlertCircle size={12} /> {discountError}
+          </div>
+        )}
+        {appliedDiscount && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '0.4rem', color: '#22c55e', fontSize: '0.78rem' }}>
+            <Check size={12} /> Descuento del {appliedDiscount.percentage}% aplicado
+            <button onClick={() => { onDiscountApply(null); setDiscountCode('') }} style={{ marginLeft: '4px', background: 'none', border: 'none', color: '#5c3520', cursor: 'pointer', fontSize: '0.75rem', textDecoration: 'underline' }}>Quitar</button>
           </div>
         )}
       </div>
@@ -172,8 +213,13 @@ function StepCart({ onNext }: { onNext: () => void }) {
       }}>
         <div>
           <div style={{ color: '#7a5c44', fontSize: '0.7rem', letterSpacing: '0.15em', textTransform: 'uppercase' }}>Total</div>
+          {appliedDiscount && (
+            <div style={{ color: '#5c3520', fontSize: '0.85rem', textDecoration: 'line-through', fontFamily: 'var(--font-playfair), Georgia, serif' }}>
+              ${subtotal.toLocaleString('es-AR')}
+            </div>
+          )}
           <div style={{ fontFamily: 'var(--font-playfair), Georgia, serif', fontSize: '1.75rem', fontWeight: 800, background: 'linear-gradient(135deg, #e8783a, #d4a55a)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
-            ${subtotal.toLocaleString('es-AR')} ARS
+            ${finalTotal.toLocaleString('es-AR')} ARS
           </div>
         </div>
         <div style={{ color: '#5c3520', fontSize: '0.75rem', textAlign: 'right' }}>
@@ -580,6 +626,7 @@ export default function CheckoutPage() {
   const [loading, setLoading] = useState(false)
   const [orderId, setOrderId] = useState<number | null>(null)
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('transferencia')
+  const [appliedDiscount, setAppliedDiscount] = useState<AppliedDiscount | null>(null)
   const [customer, setCustomer] = useState<{
     name: string; email: string; phone: string
     address: string; city: string; province: string; postalCode: string
@@ -587,6 +634,8 @@ export default function CheckoutPage() {
     name: '', email: '', phone: '',
     address: '', city: '', province: '', postalCode: '',
   })
+
+  const finalTotal = appliedDiscount ? Math.round(subtotal * (1 - appliedDiscount.percentage / 100)) : subtotal
 
   // Redirect if empty cart and not on confirmation
   useEffect(() => {
@@ -616,6 +665,7 @@ export default function CheckoutPage() {
           },
           items: items.map(i => ({ variant_id: i.variantId, quantity: i.quantity })),
           payment_method: method === 'mercadopago' ? 'tarjeta' : method,
+          discount_code: appliedDiscount?.code || undefined,
           shipping_address: customer.address || undefined,
           city: customer.city || undefined,
           province: customer.province || undefined,
@@ -667,7 +717,13 @@ export default function CheckoutPage() {
 
         <ProgressBar step={step} />
 
-        {step === 1 && <StepCart onNext={() => setStep(2)} />}
+        {step === 1 && (
+          <StepCart
+            onNext={() => setStep(2)}
+            appliedDiscount={appliedDiscount}
+            onDiscountApply={setAppliedDiscount}
+          />
+        )}
         {step === 2 && (
           <StepCustomer
             data={customer}
@@ -678,14 +734,14 @@ export default function CheckoutPage() {
         )}
         {step === 3 && (
           <StepPayment
-            subtotal={subtotal}
+            subtotal={finalTotal}
             onConfirm={handleConfirmPayment}
             onBack={() => setStep(2)}
             loading={loading}
           />
         )}
         {step === 4 && orderId && (
-          <StepConfirmation orderId={orderId} paymentMethod={paymentMethod} subtotal={subtotal} />
+          <StepConfirmation orderId={orderId} paymentMethod={paymentMethod} subtotal={finalTotal} />
         )}
       </div>
 

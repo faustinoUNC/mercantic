@@ -2,7 +2,7 @@ import { NextRequest } from 'next/server'
 import {
   handleList, handleListAdmin,
   handleCreateProduct, handleCreateVariant,
-  handleUpdateProduct, handleUpdateVariant, handleDeleteVariant,
+  handleUpdateProduct, handleUpdateVariant, handleDeleteVariant, handleDeleteProduct,
 } from '@/backend/features/products/endpoints/product.endpoints'
 
 export async function GET(req: NextRequest) {
@@ -28,5 +28,6 @@ export async function DELETE(req: NextRequest) {
   const body = await req.json()
   const { type, id } = body
   if (type === 'variant') return handleDeleteVariant(id)
+  if (type === 'product') return handleDeleteProduct(id)
   return new Response(JSON.stringify({ error: 'Unsupported type' }), { status: 400 })
 }
