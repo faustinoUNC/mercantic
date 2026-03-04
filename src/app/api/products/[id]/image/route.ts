@@ -98,7 +98,8 @@ export async function POST(
 }
 
 // DELETE: Remove one image by index, or all if no index provided
-// Body: { index?: number }
+// Body: { index?: number, current_urls?: string[] }
+// current_urls is the authoritative list from the client — avoids stale DB reads
 export async function DELETE(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -106,22 +107,28 @@ export async function DELETE(
   const { id } = await params
   const supabase = adminClient()
   let removeIndex: number | undefined
+  let clientUrls: string[] | undefined
 
   try {
     const body = await req.json()
     removeIndex = typeof body.index === 'number' ? body.index : undefined
+    if (Array.isArray(body.current_urls)) clientUrls = body.current_urls
   } catch { /* no body — remove all */ }
 
-  const { data: product } = await supabase
-    .from('products')
-    .select('image_url, image_urls')
-    .eq('id', id)
-    .single()
-
-  // Build current list — try image_urls first, fall back to image_url
-  let existing: string[] = (product?.image_urls as string[] | null) ?? []
-  if (existing.length === 0 && (product as any)?.image_url) {
-    existing = [(product as any).image_url as string]
+  // Use client-provided list (authoritative) or fall back to DB
+  let existing: string[]
+  if (clientUrls && clientUrls.length > 0) {
+    existing = clientUrls
+  } else {
+    const { data: product } = await supabase
+      .from('products')
+      .select('image_url, image_urls')
+      .eq('id', id)
+      .single()
+    existing = (product?.image_urls as string[] | null) ?? []
+    if (existing.length === 0 && (product as any)?.image_url) {
+      existing = [(product as any).image_url as string]
+    }
   }
 
   if (removeIndex !== undefined && removeIndex >= 0 && removeIndex < existing.length) {

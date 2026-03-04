@@ -84,7 +84,7 @@ function ImageUploader({
     const res = await fetch(`/api/products/${productId}/image`, {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ index }),
+      body: JSON.stringify({ index, current_urls: currentUrls }),
     })
     const data = await res.json()
     setDeletingIdx(null)

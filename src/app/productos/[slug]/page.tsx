@@ -17,8 +17,8 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   const product = await getProduct(slug)
   if (!product) notFound()
   const hasOffer = product.variants.some(v => v.active && v.sale_price != null)
-  const images: string[] = (product as any).image_urls?.length
-    ? (product as any).image_urls
+  const imageUrls: string[] = product.image_urls?.length
+    ? product.image_urls
     : product.image_url ? [product.image_url] : []
 
   return (
@@ -41,7 +41,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             position: 'relative', overflow: 'hidden',
           }}>
             <ProductImageGallery
-              images={images}
+              images={imageUrls}
               productName={product.name}
               accentColor={accent}
               glow={glow}

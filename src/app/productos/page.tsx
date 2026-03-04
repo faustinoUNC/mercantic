@@ -4,6 +4,7 @@ import { Footer } from '@/frontend/components/layout/Footer'
 import { ArrowRight, Tag } from 'lucide-react'
 import { listProducts } from '@/backend/features/products/services/product.service'
 import { formatPrice } from '@/lib/utils/formatting'
+import { CardImageCarousel } from '@/frontend/components/features/products/CardImageCarousel'
 
 const ACCENTS = ['#e8783a', '#d4a55a', '#c4622d', '#7a5c44', '#b07a40']
 const GLOWS  = [
@@ -91,11 +92,9 @@ export default async function ProductosPage() {
                 overflow: 'hidden',
               }}>
                 {(product.image_urls?.length || product.image_url) ? (
-                  /* eslint-disable-next-line @next/next/no-img-element */
-                  <img
-                    src={product.image_urls?.[0] ?? product.image_url!}
+                  <CardImageCarousel
+                    images={product.image_urls?.length ? product.image_urls : [product.image_url!]}
                     alt={product.name}
-                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                   />
                 ) : (
                   <div style={{
