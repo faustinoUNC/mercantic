@@ -143,9 +143,13 @@ export default async function ProductosPage() {
                   </p>
                 )}
 
-                {/* Info chips */}
+                {/* Info chips — derived from actual variants */}
                 <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '1.5rem' }}>
-                  {['1,25m', '1,50m', 'Negro', 'Óxido'].map(tag => (
+                  {[
+                    ...([...new Set(activeVariants.map(v => v.size))].sort().map(s => s.replace('.', ','))),
+                    ...([...new Set(activeVariants.map(v => v.color))].map(c => c === 'oxido' ? 'Óxido' : c.charAt(0).toUpperCase() + c.slice(1))),
+                    ...(product.includes?.slice(0, 3) ?? []),
+                  ].map(tag => (
                     <span key={tag} style={{
                       background: 'rgba(92, 53, 32, 0.2)',
                       border: '1px solid rgba(92, 53, 32, 0.4)',
@@ -156,19 +160,6 @@ export default async function ProductosPage() {
                       letterSpacing: '0.05em',
                     }}>
                       {tag}
-                    </span>
-                  ))}
-                  {product.includes?.slice(0, 3).map(inc => (
-                    <span key={inc} style={{
-                      background: 'rgba(92, 53, 32, 0.2)',
-                      border: '1px solid rgba(92, 53, 32, 0.4)',
-                      color: '#7a5c44',
-                      padding: '0.25rem 0.65rem',
-                      borderRadius: '100px',
-                      fontSize: '0.72rem',
-                      letterSpacing: '0.05em',
-                    }}>
-                      {inc}
                     </span>
                   ))}
                 </div>

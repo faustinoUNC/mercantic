@@ -27,7 +27,7 @@ export function VariantSelector({ variants, includes, productInfo, onVariantChan
 
   const activeVariants = variants.filter(v => v.active)
   const sizes = [...new Set(activeVariants.map(v => v.size))].sort()
-  const [selectedSize, setSelectedSize] = useState(sizes[0] ?? '1.25m')
+  const [selectedSize, setSelectedSize] = useState(sizes[0] ?? '')
 
   const colorsForSize = activeVariants.filter(v => v.size === selectedSize).map(v => v.color)
   const [selectedColor, setSelectedColor] = useState(colorsForSize[0] ?? 'negro')
@@ -50,7 +50,7 @@ export function VariantSelector({ variants, includes, productInfo, onVariantChan
   const originalPrice = selectedVariant?.price ?? 0
   const discountPct = hasSale ? Math.round((1 - displayPrice / originalPrice) * 100) : 0
 
-  const includesList = includes?.length ? includes : ['Parrilla', 'Estaca', 'Tapa']
+  const includesList = includes ?? []
 
   function handleAddToCart() {
     if (!selectedVariant || !productInfo) return
@@ -184,9 +184,11 @@ export function VariantSelector({ variants, includes, productInfo, onVariantChan
         <div style={{ textAlign: 'right' }}>
           <div style={{ color: '#5c3520', fontSize: '0.75rem' }}>{selectedSize}</div>
           <div style={{ color: '#5c3520', fontSize: '0.75rem' }}>{COLOR_LABELS[selectedColor] ?? selectedColor}</div>
-          <div style={{ color: '#5c3520', fontSize: '0.7rem', marginTop: '4px' }}>
-            Incluye: {includesList.join(' + ')}
-          </div>
+          {includesList.length > 0 && (
+            <div style={{ color: '#5c3520', fontSize: '0.7rem', marginTop: '4px' }}>
+              Incluye: {includesList.join(' + ')}
+            </div>
+          )}
         </div>
       </div>
 

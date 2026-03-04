@@ -71,11 +71,16 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             )}
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '0.75rem', marginBottom: '2rem' }}>
-              {[
-                { icon: Shield, label: 'Material', value: product.material ?? 'Chapa 3,2mm' },
-                { icon: Package, label: 'Incluye', value: (product.includes ?? ['Parrilla', 'Estaca', 'Tapa']).join(' · ') },
-                { icon: Ruler, label: 'Colores', value: 'Negro · Óxido' },
-              ].map(({ icon: Icon, label, value }) => (
+              {([
+                product.material ? { icon: Shield, label: 'Material', value: product.material } : null,
+                product.includes?.length ? { icon: Package, label: 'Incluye', value: product.includes.join(' · ') } : null,
+                {
+                  icon: Ruler, label: 'Colores',
+                  value: [...new Set(product.variants.map(v => v.color))]
+                    .map(c => c === 'oxido' ? 'Óxido' : c.charAt(0).toUpperCase() + c.slice(1))
+                    .join(' · '),
+                },
+              ] as const).filter((x): x is NonNullable<typeof x> => x !== null).map(({ icon: Icon, label, value }) => (
                 <div key={label} style={{ background: 'rgba(45,26,14,0.6)', border: '1px solid rgba(92,53,32,0.35)', borderRadius: '8px', padding: '0.85rem' }}>
                   <Icon size={16} style={{ color: '#c4622d', marginBottom: '0.4rem' }} />
                   <div style={{ color: '#5c3520', fontSize: '0.65rem', letterSpacing: '0.1em', textTransform: 'uppercase' }}>{label}</div>

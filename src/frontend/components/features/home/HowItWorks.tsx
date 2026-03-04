@@ -12,7 +12,7 @@ const STEPS = [
   {
     number: '02',
     title: 'Corte y moldeado',
-    description: 'Cada pieza se corta y moldea a mano según las medidas exactas del modelo elegido: T-REX o RAPTOR.',
+    description: 'Cada pieza se corta y moldea a mano según las medidas exactas del modelo elegido.',
     detail: 'Corte artesanal · Precisión manual',
   },
   {
