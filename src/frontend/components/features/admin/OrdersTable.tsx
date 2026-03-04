@@ -11,20 +11,28 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Tooltip as InfoTooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import {
-  Search, Package, TrendingUp, Clock, CheckCircle,
-  User, Phone, Mail, MapPin, FileText, ShoppingBag, Copy, Check,
+  Search, Package, TrendingUp, Clock,
+  User, Phone, Mail, MapPin, FileText, ShoppingBag, Copy, Check, Truck, PackageCheck,
 } from 'lucide-react'
 import type { OrderComplete } from '@/backend/features/orders/models/order.model'
 import { useOrders } from '@/frontend/hooks/useOrders'
 import { formatPrice, formatDate } from '@/lib/utils/formatting'
 
+const DELIVERY_CONFIG: Record<string, { label: string; icon: React.ElementType; trigger: string; dot: string }> = {
+  pending:   { label: 'Pendiente',  icon: Clock,         trigger: 'border-amber-300 bg-amber-50 text-amber-900 hover:bg-amber-100', dot: 'bg-amber-400' },
+  shipped:   { label: 'Enviado',    icon: Truck,         trigger: 'border-blue-300 bg-blue-50 text-blue-900 hover:bg-blue-100',   dot: 'bg-blue-500'  },
+  delivered: { label: 'Entregado',  icon: PackageCheck,  trigger: 'border-green-300 bg-green-50 text-green-900 hover:bg-green-100', dot: 'bg-green-500' },
+}
+
 function DeliveryBadge({ status }: { status: string }) {
-  const map: Record<string, string> = {
-    pending:   'Pendiente',
-    shipped:   'Enviado',
-    delivered: 'Entregado',
-  }
-  return <Badge variant="outline">{map[status] ?? status}</Badge>
+  const cfg = DELIVERY_CONFIG[status]
+  if (!cfg) return <Badge variant="outline">{status}</Badge>
+  const Icon = cfg.icon
+  return (
+    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${cfg.trigger}`}>
+      <Icon className="w-3 h-3" />{cfg.label}
+    </span>
+  )
 }
 
 export function OrdersTable() {
@@ -53,9 +61,8 @@ export function OrdersTable() {
   const totalPages = Math.max(1, Math.ceil(filtered.length / PER_PAGE))
   const paginated = filtered.slice((page - 1) * PER_PAGE, page * PER_PAGE)
 
-  const paidOrders = orders.filter(o => o.payment_status === 'paid')
-  const totalRevenue = paidOrders.reduce((s, o) => s + o.final_amount, 0)
-  const pendingDelivery = orders.filter(o => o.payment_status === 'paid' && o.delivery_status === 'pending').length
+  const totalRevenue = orders.reduce((s, o) => s + o.final_amount, 0)
+  const pendingDelivery = orders.filter(o => o.delivery_status === 'pending').length
 
   const copy = async (text: string, key: string) => {
     await navigator.clipboard.writeText(text)
@@ -82,12 +89,11 @@ export function OrdersTable() {
   return (
     <div className="space-y-6">
       {/* Stats */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-3">
         {[
-          { label: 'Total Pedidos', value: orders.length, sub: 'registrados', icon: ShoppingBag, tip: 'Cantidad total de pedidos en el sistema' },
-          { label: 'Pedidos Pagados', value: paidOrders.length, sub: `${orders.length > 0 ? Math.round(paidOrders.length / orders.length * 100) : 0}% del total`, icon: CheckCircle, tip: 'Pedidos con pago aprobado' },
-          { label: 'Ingresos Totales', value: formatPrice(totalRevenue), sub: 'pagos aprobados', icon: TrendingUp, tip: 'Suma del monto final de pedidos pagados' },
-          { label: 'Por Despachar', value: pendingDelivery, sub: 'envíos pendientes', icon: Clock, tip: 'Pedidos pagados sin enviar todavía' },
+          { label: 'Total Pedidos',   value: orders.length,             sub: 'registrados',    icon: ShoppingBag, tip: 'Cantidad total de pedidos en el sistema' },
+          { label: 'Ingresos Totales', value: formatPrice(totalRevenue), sub: 'total acumulado', icon: TrendingUp,  tip: 'Suma del monto final de todos los pedidos' },
+          { label: 'Por Despachar',   value: pendingDelivery,            sub: 'envíos pendientes', icon: Clock,    tip: 'Pedidos que aún no fueron enviados' },
         ].map(({ label, value, sub, icon: Icon, tip }) => (
           <InfoTooltip key={label}>
             <TooltipTrigger asChild>
@@ -191,11 +197,18 @@ export function OrdersTable() {
                         value={order.delivery_status}
                         onValueChange={v => updateOrder(order.id, { delivery_status: v as any })}
                       >
-                        <SelectTrigger className="w-[130px]"><SelectValue /></SelectTrigger>
+                        <SelectTrigger className={`w-[130px] font-medium text-xs ${DELIVERY_CONFIG[order.delivery_status]?.trigger ?? ''}`}>
+                          <SelectValue />
+                        </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="pending">Pendiente</SelectItem>
-                          <SelectItem value="shipped">Enviado</SelectItem>
-                          <SelectItem value="delivered">Entregado</SelectItem>
+                          {Object.entries(DELIVERY_CONFIG).map(([val, cfg]) => (
+                            <SelectItem key={val} value={val}>
+                              <span className="flex items-center gap-2">
+                                <span className={`w-2 h-2 rounded-full flex-shrink-0 ${cfg.dot}`} />
+                                {cfg.label}
+                              </span>
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     </TableCell>
@@ -360,11 +373,18 @@ export function OrdersTable() {
                           setSelected(prev => prev ? { ...prev, delivery_status: v as any } : null)
                         }}
                       >
-                        <SelectTrigger className="w-[140px]"><SelectValue /></SelectTrigger>
+                        <SelectTrigger className={`w-[140px] font-medium text-xs ${DELIVERY_CONFIG[selected.delivery_status]?.trigger ?? ''}`}>
+                          <SelectValue />
+                        </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="pending">Pendiente</SelectItem>
-                          <SelectItem value="shipped">Enviado</SelectItem>
-                          <SelectItem value="delivered">Entregado</SelectItem>
+                          {Object.entries(DELIVERY_CONFIG).map(([val, cfg]) => (
+                            <SelectItem key={val} value={val}>
+                              <span className="flex items-center gap-2">
+                                <span className={`w-2 h-2 rounded-full flex-shrink-0 ${cfg.dot}`} />
+                                {cfg.label}
+                              </span>
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     </div>

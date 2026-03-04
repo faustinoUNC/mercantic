@@ -96,7 +96,7 @@ export function GeneralStats() {
     )
   }
 
-  const { summary, daily_sales, by_product, payment_status, delivery_status, by_province } = stats!
+  const { summary, daily_sales, by_product, delivery_status, by_province } = stats!
 
   // ── Bar chart ──────────────────────────────────────────────────────────────
   const barData = {
@@ -211,16 +211,6 @@ export function GeneralStats() {
     cutout: '68%',
   }
 
-  const paymentData = {
-    labels: ['Pagados', 'Pendientes', 'Fallidos', 'Reembolsados'],
-    datasets: [{
-      data: [payment_status.paid, payment_status.pending, payment_status.failed, payment_status.refunded],
-      backgroundColor: [BRAND.orange, BRAND.gold, BRAND.danger, BRAND.gray],
-      borderWidth: 0,
-      hoverOffset: 6,
-    }],
-  }
-
   const deliveryData = {
     labels: ['Pendientes', 'Enviados', 'Entregados'],
     datasets: [{
@@ -304,37 +294,8 @@ export function GeneralStats() {
         </CardContent>
       </Card>
 
-      {/* Doughnuts + by_product */}
-      <div className="grid gap-4 lg:grid-cols-3">
-        {/* Payment status */}
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Estado de Pagos</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {payment_status.paid + payment_status.pending + payment_status.failed + payment_status.refunded === 0 ? (
-              <div className="h-44 flex items-center justify-center text-sm text-muted-foreground">Sin datos</div>
-            ) : (
-              <div className="h-44"><Doughnut data={paymentData} options={doughnutOptions} /></div>
-            )}
-            <div className="grid grid-cols-2 gap-x-4 gap-y-1 mt-3 text-xs">
-              {[
-                { label: 'Pagados', value: payment_status.paid, color: BRAND.orange },
-                { label: 'Pendientes', value: payment_status.pending, color: BRAND.gold },
-                { label: 'Fallidos', value: payment_status.failed, color: BRAND.danger },
-                { label: 'Reembolsados', value: payment_status.refunded, color: BRAND.gray },
-              ].map(({ label, value, color }) => (
-                <div key={label} className="flex items-center justify-between">
-                  <span className="flex items-center gap-1.5 text-muted-foreground">
-                    <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: color }} />{label}
-                  </span>
-                  <span className="font-medium tabular-nums">{value}</span>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
+      {/* Delivery + by_product */}
+      <div className="grid gap-4 lg:grid-cols-2">
         {/* Delivery status */}
         <Card>
           <CardHeader className="pb-2">
