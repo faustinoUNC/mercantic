@@ -46,14 +46,22 @@ function ImageUploader({
   productId,
   currentUrls,
   onUpdated,
+  onRefresh,
 }: {
   productId: string
   currentUrls: string[]
   onUpdated: (urls: string[]) => void
+  onRefresh?: () => void
 }) {
   const [uploading, setUploading] = useState(false)
   const [deletingIdx, setDeletingIdx] = useState<number | null>(null)
   const [error, setError] = useState('')
+  const [savedMsg, setSavedMsg] = useState('')
+
+  function showSaved(msg: string) {
+    setSavedMsg(msg)
+    setTimeout(() => setSavedMsg(''), 2500)
+  }
 
   async function handleFile(file: File) {
     setError('')
@@ -65,7 +73,10 @@ function ImageUploader({
     const data = await res.json()
     setUploading(false)
     if (!res.ok) { setError(data.error ?? 'Error al subir'); return }
-    onUpdated(data.image_urls ?? (data.image_url ? [data.image_url] : []))
+    const newUrls = data.image_urls ?? (data.image_url ? [data.image_url] : [])
+    onUpdated(newUrls)
+    showSaved('✓ Imagen guardada')
+    onRefresh?.()
   }
 
   async function handleDelete(index: number) {
@@ -78,13 +89,22 @@ function ImageUploader({
     const data = await res.json()
     setDeletingIdx(null)
     onUpdated(data.image_urls ?? [])
+    showSaved('✓ Imagen eliminada')
+    onRefresh?.()
   }
 
   return (
     <div className="space-y-3 py-3">
-      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-        Imágenes del producto ({currentUrls.length} / 5)
-      </p>
+      <div className="flex items-center justify-between">
+        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+          Imágenes del producto ({currentUrls.length} / 5)
+        </p>
+        {savedMsg && (
+          <span className="text-xs text-emerald-500 flex items-center gap-1 font-medium">
+            <CircleCheck className="w-3 h-3" /> {savedMsg}
+          </span>
+        )}
+      </div>
 
       <div className="flex flex-wrap gap-2">
         {currentUrls.map((url, idx) => (
@@ -115,7 +135,7 @@ function ImageUploader({
               type="file"
               accept="image/jpeg,image/png,image/webp"
               className="sr-only"
-              onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f) }}
+              onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f); e.target.value = '' }}
             />
           </label>
         )}
@@ -442,6 +462,7 @@ function ProductEditModal({
   onToggleActive,
   onToggleFeatured,
   onCreateVariant,
+  onRefresh,
 }: {
   product: ProductWithVariants
   open: boolean
@@ -452,6 +473,7 @@ function ProductEditModal({
   onToggleActive: (id: string, active: boolean) => Promise<void>
   onToggleFeatured: (id: string, featured: boolean) => Promise<void>
   onCreateVariant: (p: CreateVariantPayload) => Promise<{ ok: boolean }>
+  onRefresh?: () => void
 }) {
   const [addingVariant, setAddingVariant] = useState(false)
   const [editingInfo, setEditingInfo] = useState(false)
@@ -532,7 +554,7 @@ function ProductEditModal({
           <Separator />
 
           {/* Images */}
-          <ImageUploader productId={product.id} currentUrls={imageUrls} onUpdated={setImageUrls} />
+          <ImageUploader productId={product.id} currentUrls={imageUrls} onUpdated={setImageUrls} onRefresh={onRefresh} />
 
           <Separator />
 
@@ -571,6 +593,7 @@ function ProductRow({
   onToggleFeatured,
   onCreateVariant,
   onDeleteProduct,
+  onRefresh,
 }: {
   product: ProductWithVariants
   onUpdateVariant: (id: string, p: { price: number; sale_price: number | null; stock: number; active: boolean }) => Promise<void>
@@ -580,6 +603,7 @@ function ProductRow({
   onToggleFeatured: (id: string, featured: boolean) => Promise<void>
   onCreateVariant: (p: CreateVariantPayload) => Promise<{ ok: boolean }>
   onDeleteProduct: (id: string) => Promise<void>
+  onRefresh?: () => void
 }) {
   const [editOpen, setEditOpen] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
@@ -675,6 +699,7 @@ function ProductRow({
           onToggleActive={onToggleActive}
           onToggleFeatured={onToggleFeatured}
           onCreateVariant={onCreateVariant}
+          onRefresh={onRefresh}
         />
       )}
     </>
@@ -919,7 +944,7 @@ function NewProductDialog({
 // ─── Main export ──────────────────────────────────────────────────────────────
 
 export function ProductManager() {
-  const { products, isLoading, updateProduct, updateVariant, deleteVariant, deleteProduct, createProduct, createVariant } = useProducts(true)
+  const { products, isLoading, refresh, updateProduct, updateVariant, deleteVariant, deleteProduct, createProduct, createVariant } = useProducts(true)
   const [search, setSearch] = useState('')
 
   const handleUpdateVariant = async (id: string, payload: { price: number; sale_price: number | null; stock: number; active: boolean }) => {
@@ -1028,6 +1053,7 @@ export function ProductManager() {
               onToggleFeatured={handleToggleFeatured}
               onCreateVariant={handleCreateVariant}
               onDeleteProduct={handleDeleteProduct}
+              onRefresh={refresh}
             />
           ))
         )}

@@ -52,8 +52,7 @@ export function Footer() {
               {[
                 { href: '/', label: 'Inicio' },
                 { href: '/productos', label: 'Modelos' },
-                { href: '/productos/t-rex', label: 'T-REX' },
-                { href: '/productos/raptor', label: 'RAPTOR' },
+                { href: '/contacto', label: 'Contacto' },
               ].map(({ href, label }) => (
                 <Link key={href} href={href} style={{
                   color: '#5c3520', textDecoration: 'none', fontSize: '0.875rem',

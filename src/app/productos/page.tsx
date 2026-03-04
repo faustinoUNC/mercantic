@@ -70,6 +70,7 @@ export default async function ProductosPage() {
           const prices = activeVariants.map(v => v.sale_price ?? v.price)
           const priceFrom = prices.length > 0 ? Math.min(...prices) : null
           const hasOffer = activeVariants.some(v => v.sale_price != null)
+          const originalFrom = hasOffer ? Math.min(...activeVariants.map(v => v.price)) : null
 
           return (
             <div key={product.slug} style={{
@@ -179,6 +180,11 @@ export default async function ProductosPage() {
                     {priceFrom !== null && (
                       <>
                         <div style={{ color: '#5c3520', fontSize: '0.7rem', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Desde</div>
+                        {hasOffer && originalFrom !== null && (
+                          <div style={{ color: '#5c3520', fontSize: '0.9rem', textDecoration: 'line-through' }}>
+                            {formatPrice(originalFrom)}
+                          </div>
+                        )}
                         <div style={{
                           fontFamily: 'var(--font-playfair), Georgia, serif',
                           fontSize: '1.5rem', fontWeight: 800,
