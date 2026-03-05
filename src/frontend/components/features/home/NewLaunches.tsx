@@ -45,7 +45,7 @@ function NewCard({
       animate={inView ? { clipPath: 'inset(0 0% 0 0)', opacity: 1 } : {}}
       transition={{ duration: 0.8, delay: index * 0.18, ease: [0.22, 1, 0.36, 1] }}
       style={{
-        flex: isSingle ? '1 1 100%' : '0 0 min(560px, 80vw)',
+        flex: isSingle ? '1 1 100%' : '0 0 clamp(280px, calc(100% / 2.2), 560px)',
         height: 'clamp(300px, 42vw, 450px)',
         position: 'relative',
         overflow: 'hidden',

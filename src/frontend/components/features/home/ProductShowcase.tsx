@@ -40,7 +40,7 @@ function FeaturedPanel({
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
-        flex: isSingle ? '1 1 100%' : '0 0 min(600px, 82vw)',
+        flex: isSingle ? '1 1 100%' : '0 0 clamp(280px, calc(100% / 2.2), 560px)',
         height: 'clamp(300px, 42vw, 460px)',
         position: 'relative',
         overflow: 'hidden',
