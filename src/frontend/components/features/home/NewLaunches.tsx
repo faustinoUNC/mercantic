@@ -102,7 +102,8 @@ function NewCard({
         {/* ── ESTRENO badge ──────────────────────────────────────────── */}
         <motion.div
           initial={{ opacity: 0, y: -6 }}
-          animate={inView ? { opacity: 1, y: 0 } : {}}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-40px' }}
           transition={{ duration: 0.45, delay: index * 0.18 + 0.55 }}
           style={{
             position: 'absolute', top: '1.25rem', left: '1.25rem',
