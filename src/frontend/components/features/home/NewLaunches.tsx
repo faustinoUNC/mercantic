@@ -285,7 +285,9 @@ export function NewLaunches() {
           scrollSnapType: 'x mandatory',
           scrollbarWidth: 'none',
           WebkitOverflowScrolling: 'touch',
-          padding: '0 clamp(1.5rem, 5vw, 4rem)',
+          paddingLeft: 'clamp(1.5rem, 5vw, 4rem)',
+          paddingRight: 'clamp(1.5rem, 5vw, 4rem)',
+          scrollPaddingLeft: 'clamp(1.5rem, 5vw, 4rem)',
         }}>
           {newProducts.map((p, i) => (
             <NewCard

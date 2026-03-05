@@ -287,10 +287,13 @@ export function ProductShowcase() {
           style={{
             display: 'flex',
             gap: '2px',
-            overflowX: featured.length > 1 ? 'auto' : 'hidden',
+            overflowX: 'auto',
             scrollSnapType: 'x mandatory',
             scrollbarWidth: 'none',
             WebkitOverflowScrolling: 'touch',
+            paddingLeft: 'clamp(1.5rem, 5vw, 4rem)',
+            paddingRight: 'clamp(1.5rem, 5vw, 4rem)',
+            scrollPaddingLeft: 'clamp(1.5rem, 5vw, 4rem)',
           }}
         >
           {featured.map(p => (
