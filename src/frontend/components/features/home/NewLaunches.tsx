@@ -30,8 +30,6 @@ function NewCard({
   index: number
   isSingle: boolean
 }) {
-  const ref    = useRef<HTMLDivElement>(null)
-  const inView = useInView(ref, { once: true, margin: '-80px' })
   const [hovered, setHovered] = useState(false)
   const from   = getLowestPrice(product)
   const images: string[] = product.image_urls?.length
@@ -40,9 +38,9 @@ function NewCard({
 
   return (
     <motion.div
-      ref={ref}
       initial={{ clipPath: 'inset(0 100% 0 0)', opacity: 0 }}
-      animate={inView ? { clipPath: 'inset(0 0% 0 0)', opacity: 1 } : {}}
+      whileInView={{ clipPath: 'inset(0 0% 0 0)', opacity: 1 }}
+      viewport={{ once: true, margin: '-40px' }}
       transition={{ duration: 0.8, delay: index * 0.18, ease: [0.22, 1, 0.36, 1] }}
       style={{
         flex: isSingle ? '1 1 100%' : '0 0 clamp(280px, calc(100% / 2.2), 560px)',
