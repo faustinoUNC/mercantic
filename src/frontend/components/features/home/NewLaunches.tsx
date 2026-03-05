@@ -218,7 +218,7 @@ export function NewLaunches() {
       paddingTop: 'clamp(4rem, 8vw, 6rem)',
       paddingBottom: 'clamp(3rem, 6vw, 5rem)',
       position: 'relative',
-      overflow: 'hidden',
+      overflowX: 'clip',
     }}>
       {/* Separator line from hero */}
       <div style={{

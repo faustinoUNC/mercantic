@@ -22,6 +22,7 @@ export async function getAllProducts(): Promise<ProductWithVariants[]> {
     .is('deleted_at', null)
     .order('featured', { ascending: false })
     .order('created_at')
+    .order('name')
 
   if (error) throw new Error(error.message)
   return (data as any[]).map(normalize)
