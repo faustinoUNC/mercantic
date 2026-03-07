@@ -429,15 +429,69 @@ export function OrdersTable({ onNewOrdersCount }: OrdersTableProps = {}) {
           </div>
         </CardHeader>
 
-        <CardContent>
-          <div className="rounded-md border overflow-x-auto">
+        <CardContent className="p-0 sm:p-6">
+          {/* ── Mobile cards ── */}
+          <div className="sm:hidden divide-y border-t">
+            {paginated.length === 0 ? (
+              <div className="py-12 text-center text-muted-foreground text-sm">
+                {search ? 'No se encontraron pedidos con esa búsqueda' : 'No hay pedidos que mostrar'}
+              </div>
+            ) : paginated.map(order => (
+              <div key={order.id} className="p-4 space-y-3 bg-background active:bg-muted/30 transition-colors">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="font-mono text-xs text-muted-foreground">#{order.id}</span>
+                      <span className="text-xs text-muted-foreground">{formatDate(order.created_at)}</span>
+                    </div>
+                    <div className="font-semibold text-sm">{order.customer?.name ?? '—'}</div>
+                    <div className="text-xs text-muted-foreground mt-0.5">{order.customer?.phone ?? order.customer?.email ?? ''}</div>
+                    {order.variant && (
+                      <div className="text-xs text-muted-foreground mt-1">
+                        {order.variant.product?.name} · {order.variant.size} {order.variant.color}
+                      </div>
+                    )}
+                  </div>
+                  <div className="text-right flex-shrink-0">
+                    <div className="font-bold text-base">{formatPrice(order.final_amount)}</div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Select
+                    value={order.delivery_status}
+                    onValueChange={v => updateOrder(order.id, { delivery_status: v as any })}
+                  >
+                    <SelectTrigger className={`flex-1 h-10 font-medium text-xs ${DELIVERY_CONFIG[order.delivery_status]?.trigger ?? ''}`}>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Object.entries(DELIVERY_CONFIG).map(([val, cfg]) => (
+                        <SelectItem key={val} value={val}>
+                          <span className="flex items-center gap-2">
+                            <span className={`w-2 h-2 rounded-full flex-shrink-0 ${cfg.dot}`} />
+                            {cfg.label}
+                          </span>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button variant="outline" className="h-10 px-5 shrink-0 text-sm" onClick={() => setSelected(order)}>
+                    Ver
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* ── Desktop table ── */}
+          <div className="hidden sm:block rounded-md border overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-[50px]">ID</TableHead>
-                  <TableHead className="hidden sm:table-cell">Fecha</TableHead>
+                  <TableHead>Fecha</TableHead>
                   <TableHead>Cliente</TableHead>
-                  <TableHead className="hidden md:table-cell">Producto</TableHead>
+                  <TableHead>Producto</TableHead>
                   <TableHead>Monto</TableHead>
                   <TableHead>Envío</TableHead>
                   <TableHead className="w-[80px]"></TableHead>
@@ -453,14 +507,14 @@ export function OrdersTable({ onNewOrdersCount }: OrdersTableProps = {}) {
                 ) : paginated.map(order => (
                   <TableRow key={order.id}>
                     <TableCell className="font-mono text-xs">#{order.id}</TableCell>
-                    <TableCell className="hidden sm:table-cell text-sm whitespace-nowrap">{formatDate(order.created_at)}</TableCell>
+                    <TableCell className="text-sm whitespace-nowrap">{formatDate(order.created_at)}</TableCell>
                     <TableCell>
                       <div className="text-sm">
                         <div className="font-medium">{order.customer?.name ?? '—'}</div>
                         <div className="text-muted-foreground text-xs">{order.customer?.phone ?? order.customer?.email ?? '—'}</div>
                       </div>
                     </TableCell>
-                    <TableCell className="hidden md:table-cell">
+                    <TableCell>
                       {order.variant ? (
                         <div className="text-sm">
                           <div className="font-medium">{order.variant.product?.name ?? '—'}</div>
@@ -474,7 +528,7 @@ export function OrdersTable({ onNewOrdersCount }: OrdersTableProps = {}) {
                         value={order.delivery_status}
                         onValueChange={v => updateOrder(order.id, { delivery_status: v as any })}
                       >
-                        <SelectTrigger className={`w-[90px] sm:w-[130px] font-medium text-xs ${DELIVERY_CONFIG[order.delivery_status]?.trigger ?? ''}`}>
+                        <SelectTrigger className={`w-[130px] font-medium text-xs ${DELIVERY_CONFIG[order.delivery_status]?.trigger ?? ''}`}>
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -501,7 +555,7 @@ export function OrdersTable({ onNewOrdersCount }: OrdersTableProps = {}) {
           </div>
 
           {filtered.length > PER_PAGE && (
-            <div className="flex items-center justify-between pt-4">
+            <div className="flex items-center justify-between pt-4 px-4 sm:px-0 pb-4 sm:pb-0">
               <p className="text-sm text-muted-foreground">
                 {(page - 1) * PER_PAGE + 1}–{Math.min(page * PER_PAGE, filtered.length)} de {filtered.length}
               </p>

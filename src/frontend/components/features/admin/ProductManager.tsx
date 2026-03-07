@@ -652,77 +652,127 @@ function ProductRow({
 
   return (
     <>
-      <div className={`flex items-center gap-3 px-4 py-3 border-b last:border-b-0 hover:bg-muted/30 transition-colors ${product.featured ? 'bg-amber-500/5' : ''}`}>
-        {/* Thumbnail */}
-        <div className="w-10 h-10 flex-shrink-0 rounded-md border overflow-hidden bg-muted">
-          {thumb
-            // eslint-disable-next-line @next/next/no-img-element
-            ? <img src={thumb} alt={product.name} className="w-full h-full object-cover" />
-            : <div className="w-full h-full flex items-center justify-center text-muted-foreground/40">
-                <Package className="w-4 h-4" />
+      <div className={`border-b last:border-b-0 ${product.featured ? 'bg-amber-500/5' : ''}`}>
+
+        {/* ── Mobile card ── */}
+        <div className="flex sm:hidden gap-3 p-4">
+          <div className="w-16 h-16 flex-shrink-0 rounded-xl border overflow-hidden bg-muted">
+            {thumb
+              // eslint-disable-next-line @next/next/no-img-element
+              ? <img src={thumb} alt={product.name} className="w-full h-full object-cover" />
+              : <div className="w-full h-full flex items-center justify-center text-muted-foreground/40"><Package className="w-5 h-5" /></div>
+            }
+          </div>
+          <div className="flex-1 min-w-0 flex flex-col gap-2">
+            <div>
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <span className="font-semibold text-sm">{product.name}</span>
+                {product.featured && <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />}
+                {product.is_new && <Sparkles className="w-3.5 h-3.5 text-sky-500" />}
+                {onSale > 0 && <Badge variant="destructive" className="text-[10px] px-1 py-0">{onSale} oferta</Badge>}
               </div>
-          }
+              <div className="text-xs text-muted-foreground mt-0.5">
+                {product.variants.length} variante{product.variants.length !== 1 ? 's' : ''}
+                {priceMin !== null && (
+                  <> · {formatPrice(priceMin)}{priceMin !== priceMax && priceMax !== null && ` – ${formatPrice(priceMax)}`}</>
+                )}
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <Switch checked={product.active} onCheckedChange={handleToggleActive} disabled={togglingActive} />
+              <span className="text-xs text-muted-foreground">{product.active ? 'Activo' : 'Inactivo'}</span>
+              <div className="ml-auto flex gap-1">
+                <button
+                  onClick={() => onToggleFeatured(product.id, !product.featured)}
+                  className={`p-2 rounded-lg border transition-all ${product.featured ? 'border-amber-500/40 bg-amber-500/10 text-amber-500' : 'border-transparent text-muted-foreground/30 hover:text-amber-400'}`}
+                >
+                  <Star className={`w-4 h-4 ${product.featured ? 'fill-amber-500' : ''}`} />
+                </button>
+                <button
+                  onClick={() => onToggleIsNew(product.id, !product.is_new)}
+                  className={`p-2 rounded-lg border transition-all ${product.is_new ? 'border-sky-500/40 bg-sky-500/10 text-sky-500' : 'border-transparent text-muted-foreground/30 hover:text-sky-400'}`}
+                >
+                  <Sparkles className={`w-4 h-4 ${product.is_new ? 'fill-sky-400' : ''}`} />
+                </button>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <Button className="flex-1 h-10 gap-1.5 text-sm" onClick={() => setEditOpen(true)}>
+                <Edit2 className="w-4 h-4" /> Editar
+              </Button>
+              {confirmDelete ? (
+                <>
+                  <span className="text-xs text-destructive self-center whitespace-nowrap">¿Eliminar?</span>
+                  <Button variant="destructive" className="h-10 px-3 text-sm" disabled={deleting} onClick={handleDelete}>
+                    {deleting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Sí'}
+                  </Button>
+                  <Button variant="ghost" className="h-10 px-3" onClick={() => setConfirmDelete(false)}>No</Button>
+                </>
+              ) : (
+                <Button variant="ghost" className="h-10 w-10 p-0 text-muted-foreground hover:text-destructive" onClick={() => setConfirmDelete(true)}>
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              )}
+            </div>
+          </div>
         </div>
 
-        {/* Name + badges */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-1.5 flex-wrap">
-            <span className="font-semibold text-sm truncate">{product.name}</span>
-            {product.featured && <Star className="w-3 h-3 text-amber-500 fill-amber-500" />}
-            {product.is_new && <Sparkles className="w-3 h-3 text-sky-500" />}
-            {onSale > 0 && <Badge variant="destructive" className="text-[10px] px-1 py-0">{onSale} oferta</Badge>}
+        {/* ── Desktop row ── */}
+        <div className="hidden sm:flex items-center gap-3 px-4 py-3 hover:bg-muted/30 transition-colors">
+          <div className="w-10 h-10 flex-shrink-0 rounded-md border overflow-hidden bg-muted">
+            {thumb
+              // eslint-disable-next-line @next/next/no-img-element
+              ? <img src={thumb} alt={product.name} className="w-full h-full object-cover" />
+              : <div className="w-full h-full flex items-center justify-center text-muted-foreground/40"><Package className="w-4 h-4" /></div>
+            }
           </div>
-          <div className="text-xs text-muted-foreground mt-0.5">
-            {product.variants.length} variante{product.variants.length !== 1 ? 's' : ''}
-            {priceMin !== null && (
-              <> · {formatPrice(priceMin)}{priceMin !== priceMax && priceMax !== null && ` – ${formatPrice(priceMax)}`}</>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <span className="font-semibold text-sm truncate">{product.name}</span>
+              {product.featured && <Star className="w-3 h-3 text-amber-500 fill-amber-500" />}
+              {product.is_new && <Sparkles className="w-3 h-3 text-sky-500" />}
+              {onSale > 0 && <Badge variant="destructive" className="text-[10px] px-1 py-0">{onSale} oferta</Badge>}
+            </div>
+            <div className="text-xs text-muted-foreground mt-0.5">
+              {product.variants.length} variante{product.variants.length !== 1 ? 's' : ''}
+              {priceMin !== null && (
+                <> · {formatPrice(priceMin)}{priceMin !== priceMax && priceMax !== null && ` – ${formatPrice(priceMax)}`}</>
+              )}
+            </div>
+          </div>
+          <button
+            onClick={() => onToggleFeatured(product.id, !product.featured)}
+            title={product.featured ? 'Quitar de destacados' : 'Marcar como destacado'}
+            className={`flex-shrink-0 rounded p-1 transition-all ${product.featured ? 'text-amber-500' : 'text-muted-foreground/30 hover:text-amber-400'}`}
+          >
+            <Star className={`w-4 h-4 ${product.featured ? 'fill-amber-500' : ''}`} />
+          </button>
+          <button
+            onClick={() => onToggleIsNew(product.id, !product.is_new)}
+            title={product.is_new ? 'Quitar de nuevos lanzamientos' : 'Marcar como nuevo lanzamiento'}
+            className={`flex-shrink-0 rounded p-1 transition-all ${product.is_new ? 'text-sky-500' : 'text-muted-foreground/30 hover:text-sky-400'}`}
+          >
+            <Sparkles className="w-4 h-4" />
+          </button>
+          <Switch checked={product.active} onCheckedChange={handleToggleActive} disabled={togglingActive} className="flex-shrink-0" />
+          <div className="flex items-center gap-1 flex-shrink-0">
+            <Button size="sm" variant="outline" className="h-7 gap-1 text-xs" onClick={() => setEditOpen(true)}>
+              <Edit2 className="w-3 h-3" /> Editar
+            </Button>
+            {confirmDelete ? (
+              <div className="flex items-center gap-1">
+                <span className="text-xs text-destructive whitespace-nowrap">¿Eliminar?</span>
+                <Button size="sm" variant="destructive" className="h-7 text-xs" onClick={handleDelete} disabled={deleting}>
+                  {deleting ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Sí'}
+                </Button>
+                <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => setConfirmDelete(false)}>No</Button>
+              </div>
+            ) : (
+              <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive" onClick={() => setConfirmDelete(true)}>
+                <Trash2 className="w-3.5 h-3.5" />
+              </Button>
             )}
           </div>
-        </div>
-
-        {/* Quick featured toggle */}
-        <button
-          onClick={() => onToggleFeatured(product.id, !product.featured)}
-          title={product.featured ? 'Quitar de destacados' : 'Marcar como destacado'}
-          className={`flex-shrink-0 rounded p-1 transition-all ${product.featured ? 'text-amber-500' : 'text-muted-foreground/30 hover:text-amber-400'}`}
-        >
-          <Star className={`w-4 h-4 ${product.featured ? 'fill-amber-500' : ''}`} />
-        </button>
-        {/* Quick is_new toggle */}
-        <button
-          onClick={() => onToggleIsNew(product.id, !product.is_new)}
-          title={product.is_new ? 'Quitar de nuevos lanzamientos' : 'Marcar como nuevo lanzamiento'}
-          className={`flex-shrink-0 rounded p-1 transition-all ${product.is_new ? 'text-sky-500' : 'text-muted-foreground/30 hover:text-sky-400'}`}
-        >
-          <Sparkles className="w-4 h-4" />
-        </button>
-
-        {/* Active toggle */}
-        <Switch
-          checked={product.active}
-          onCheckedChange={handleToggleActive}
-          disabled={togglingActive}
-          className="flex-shrink-0"
-        />
-
-        {/* Actions */}
-        <div className="flex items-center gap-1 flex-shrink-0">
-          <Button size="sm" variant="outline" className="h-7 gap-1 text-xs" onClick={() => setEditOpen(true)}>
-            <Edit2 className="w-3 h-3" /> Editar
-          </Button>
-          {confirmDelete ? (
-            <div className="flex items-center gap-1">
-              <span className="text-xs text-destructive whitespace-nowrap">¿Eliminar?</span>
-              <Button size="sm" variant="destructive" className="h-7 text-xs" onClick={handleDelete} disabled={deleting}>
-                {deleting ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Sí'}
-              </Button>
-              <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => setConfirmDelete(false)}>No</Button>
-            </div>
-          ) : (
-            <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive" onClick={() => setConfirmDelete(true)}>
-              <Trash2 className="w-3.5 h-3.5" />
-            </Button>
-          )}
         </div>
       </div>
 
@@ -791,7 +841,7 @@ function NewProductDialog({
   }
 
   const handleSave = async () => {
-    if (!name.trim() || !slug.trim()) { setError('El nombre y el slug son obligatorios'); return }
+    if (!name.trim()) { setError('El nombre del producto es obligatorio'); return }
     setSaving(true)
     setError('')
     const includes = includesRaw.split(',').map(s => s.trim()).filter(Boolean)
@@ -859,27 +909,16 @@ function NewProductDialog({
         ) : (
 
         <div className="space-y-5 pt-2">
-          {/* Name + Slug */}
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div>
-              <Label className="text-xs mb-1 block">Nombre del producto *</Label>
-              <Input
-                value={name}
-                onChange={e => setName(e.target.value)}
-                placeholder="Ej: T-REX"
-                className="text-sm"
-              />
-            </div>
-            <div>
-              <Label className="text-xs mb-1 block">Slug (URL) *</Label>
-              <Input
-                value={slug}
-                onChange={e => { setSlug(e.target.value); setSlugEdited(true) }}
-                placeholder="t-rex"
-                className="text-sm font-mono"
-              />
-              <p className="text-xs text-muted-foreground mt-1">/productos/{slug || '…'}</p>
-            </div>
+          {/* Name */}
+          <div>
+            <Label className="text-xs mb-1 block">Nombre del producto *</Label>
+            <Input
+              value={name}
+              onChange={e => setName(e.target.value)}
+              placeholder="Ej: T-REX"
+              className="text-sm"
+            />
+            {name && <p className="text-xs text-muted-foreground mt-1">/productos/{slug || '…'}</p>}
           </div>
 
           {/* Description */}
@@ -995,7 +1034,7 @@ function NewProductDialog({
           )}
 
           <div className="flex gap-3 pt-1">
-            <Button onClick={handleSave} disabled={saving || !name || !slug} className="flex-1 gap-2">
+            <Button onClick={handleSave} disabled={saving || !name} className="flex-1 gap-2">
               <Save className="w-4 h-4" /> {saving ? 'Creando producto…' : 'Crear Producto'}
             </Button>
             <Button variant="outline" onClick={() => setOpen(false)}>
