@@ -76,50 +76,12 @@ export function Navbar() {
                 {label}
               </Link>
             ))}
-            <a
-              href="https://wa.me/5493513000000"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{
-                background: 'linear-gradient(135deg, #c4622d, #e8783a)',
-                color: '#f5e6d3',
-                padding: '0.5rem 1.25rem',
-                borderRadius: '4px',
-                textDecoration: 'none',
-                fontSize: '0.82rem',
-                fontWeight: 700,
-                letterSpacing: '0.06em',
-                textTransform: 'uppercase',
-                boxShadow: '0 0 16px rgba(196, 98, 45, 0.3)',
-              }}
-            >
-              Consultar
-            </a>
             <CartButton />
           </div>
 
-          {/* Mobile: Cart + WhatsApp CTA + hamburger */}
+          {/* Mobile: Cart + hamburger */}
           <div className="nav-mobile" style={{ display: 'none', alignItems: 'center', gap: '0.5rem' }}>
             <CartButton />
-            <a
-              href="https://wa.me/5493513000000"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{
-                background: 'linear-gradient(135deg, #c4622d, #e8783a)',
-                color: '#f5e6d3',
-                padding: '0.45rem 0.9rem',
-                borderRadius: '4px',
-                textDecoration: 'none',
-                fontSize: '0.78rem',
-                fontWeight: 700,
-                letterSpacing: '0.04em',
-                textTransform: 'uppercase',
-                whiteSpace: 'nowrap',
-              }}
-            >
-              Consultar
-            </a>
             <button
               onClick={() => setMenuOpen(!menuOpen)}
               style={{
