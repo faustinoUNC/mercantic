@@ -43,6 +43,29 @@ function DeliveryBadge({ status }: { status: string }) {
   )
 }
 
+// ── Manual Order Dialog helpers (defined at module level to avoid remount on each render) ──
+
+function FLabel({ label, error, required, children }: { label: string; error?: string; required?: boolean; children: React.ReactNode }) {
+  return (
+    <div className="space-y-1">
+      <label className="text-xs text-muted-foreground font-medium">
+        {label}{required && <span className="text-destructive ml-0.5">*</span>}
+      </label>
+      {children}
+      {error && <p className="text-xs text-destructive">{error}</p>}
+    </div>
+  )
+}
+
+function Sec({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div className="space-y-3">
+      <h4 className="text-sm font-semibold border-b pb-2">{title}</h4>
+      {children}
+    </div>
+  )
+}
+
 // ── Manual Order Dialog ───────────────────────────────────────────────────────
 
 function ManualOrderDialog({ open, onClose, onCreated }: {
@@ -113,27 +136,6 @@ function ManualOrderDialog({ open, onClose, onCreated }: {
     } finally {
       setSubmitting(false)
     }
-  }
-
-  function FLabel({ label, error, required, children }: { label: string; error?: string; required?: boolean; children: React.ReactNode }) {
-    return (
-      <div className="space-y-1">
-        <label className="text-xs text-muted-foreground font-medium">
-          {label}{required && <span className="text-destructive ml-0.5">*</span>}
-        </label>
-        {children}
-        {error && <p className="text-xs text-destructive">{error}</p>}
-      </div>
-    )
-  }
-
-  function Sec({ title, children }: { title: string; children: React.ReactNode }) {
-    return (
-      <div className="space-y-3">
-        <h4 className="text-sm font-semibold border-b pb-2">{title}</h4>
-        {children}
-      </div>
-    )
   }
 
   return (
