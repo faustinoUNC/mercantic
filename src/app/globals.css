@@ -107,6 +107,14 @@
   main > section {
     scroll-snap-align: start;
   }
+  @media (max-width: 768px) {
+    html {
+      scroll-snap-type: none;
+    }
+    main > section {
+      scroll-snap-align: none;
+    }
+  }
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
