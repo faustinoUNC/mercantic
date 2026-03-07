@@ -54,6 +54,8 @@ export async function createOrder(payload: {
   discount_amount: number
   final_amount: number
   payment_method: string
+  payment_status?: string
+  paid_at?: string
   notes?: string
   shipping_address?: string
   city?: string

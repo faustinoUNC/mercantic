@@ -71,6 +71,8 @@ export async function createOrder(payload: CreateOrderPayload): Promise<OrderCom
     discount_amount: discountAmount,
     final_amount: finalAmount,
     payment_method: payload.payment_method,
+    payment_status: 'paid',
+    paid_at: new Date().toISOString(),
     notes: payload.notes,
     shipping_address: payload.shipping_address,
     city: payload.city,
