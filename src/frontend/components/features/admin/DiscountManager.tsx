@@ -16,8 +16,7 @@ import { useDiscounts } from '@/frontend/hooks/useDiscounts'
 import type { DiscountCode } from '@/backend/features/discounts/models/discount.model'
 import { formatPrice, formatDate } from '@/lib/utils/formatting'
 
-function CreateForm({ onClose }: { onClose: () => void }) {
-  const { createDiscount } = useDiscounts()
+function CreateForm({ onClose, createDiscount }: { onClose: () => void; createDiscount: ReturnType<typeof useDiscounts>['createDiscount'] }) {
   const [code, setCode] = useState('')
   const [pct, setPct] = useState(10)
   const [maxUses, setMaxUses] = useState<number | ''>('')
@@ -96,7 +95,7 @@ function CreateForm({ onClose }: { onClose: () => void }) {
 }
 
 export function DiscountManager() {
-  const { discounts, isLoading, updateDiscount, deleteDiscount } = useDiscounts()
+  const { discounts, isLoading, updateDiscount, deleteDiscount, createDiscount } = useDiscounts()
   const [showCreate, setShowCreate] = useState(false)
   const [toDelete, setToDelete] = useState<DiscountCode | null>(null)
   const [deleting, setDeleting] = useState(false)
@@ -221,7 +220,7 @@ export function DiscountManager() {
             <DialogTitle>Crear código de descuento</DialogTitle>
             <DialogDescription>El código se activará automáticamente al crearlo</DialogDescription>
           </DialogHeader>
-          <CreateForm onClose={() => setShowCreate(false)} />
+          <CreateForm onClose={() => setShowCreate(false)} createDiscount={createDiscount} />
         </DialogContent>
       </Dialog>
 

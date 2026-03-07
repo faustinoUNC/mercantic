@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Tooltip as InfoTooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import {
-  Search, Package, TrendingUp, Clock,
+  Search, Package, TrendingUp, Clock, Bell,
   User, Phone, Mail, MapPin, FileText, ShoppingBag, Copy, Check, Truck, PackageCheck,
 } from 'lucide-react'
 import type { OrderComplete } from '@/backend/features/orders/models/order.model'
@@ -36,7 +36,7 @@ function DeliveryBadge({ status }: { status: string }) {
 }
 
 export function OrdersTable() {
-  const { orders, isLoading, lastUpdated, updateOrder } = useOrders()
+  const { orders, isLoading, lastUpdated, newOrdersCount, clearNewOrders, updateOrder } = useOrders()
   const [search, setSearch] = useState('')
   const [deliveryFilter, setDeliveryFilter] = useState('all')
   const [page, setPage] = useState(1)
@@ -88,6 +88,25 @@ export function OrdersTable() {
 
   return (
     <div className="space-y-6">
+      {/* New orders notification */}
+      {newOrdersCount > 0 && (
+        <div className="flex items-center justify-between gap-3 px-4 py-3 bg-amber-50 border border-amber-300 rounded-lg">
+          <div className="flex items-center gap-2.5">
+            <span className="relative flex h-3 w-3 flex-shrink-0">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-3 w-3 bg-amber-500" />
+            </span>
+            <Bell className="w-4 h-4 text-amber-700" />
+            <span className="text-amber-900 text-sm font-semibold">
+              {newOrdersCount} pedido{newOrdersCount > 1 ? 's' : ''} nuevo{newOrdersCount > 1 ? 's' : ''}
+            </span>
+          </div>
+          <Button size="sm" variant="outline" onClick={clearNewOrders} className="h-7 text-xs border-amber-300 text-amber-800 hover:bg-amber-100">
+            Marcar como visto
+          </Button>
+        </div>
+      )}
+
       {/* Stats */}
       <div className="grid gap-4 sm:grid-cols-3">
         {[
