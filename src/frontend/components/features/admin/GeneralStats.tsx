@@ -59,7 +59,7 @@ function KpiCard({
             <Icon className={`h-4 w-4 ${highlight ? 'text-primary' : 'text-muted-foreground'}`} />
           </CardHeader>
           <CardContent className="pt-0">
-            <div className={`text-2xl font-bold ${highlight ? 'text-primary' : ''}`}>{value}</div>
+            <div className={`text-lg sm:text-2xl font-bold leading-tight break-all ${highlight ? 'text-primary' : ''}`}>{value}</div>
             <p className="text-xs text-muted-foreground mt-0.5">{sub}</p>
           </CardContent>
         </Card>
