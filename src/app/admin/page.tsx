@@ -64,7 +64,6 @@ export default function AdminPage() {
           {/* Page title */}
           <div>
             <h1 className="text-2xl font-bold">Panel Administrativo</h1>
-            <p className="text-muted-foreground text-sm">Gestión de pedidos, estadísticas y productos</p>
           </div>
 
           {/* Tabs */}

@@ -309,7 +309,34 @@ function StepCustomer({ data, onChange, onNext, onBack }: {
         {field('Dirección', 'address', 'Av. Corrientes 1234, Piso 2', true)}
         <div className="ck-city-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
           <div>{field('Ciudad', 'city', 'Córdoba', true)}</div>
-          <div>{field('Provincia', 'province', 'Córdoba', true)}</div>
+          <div>
+            <label style={{ display: 'block', color: '#7a5c44', fontSize: '0.7rem', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: '0.4rem', fontWeight: 600 }}>
+              Provincia<span style={{ color: '#c4622d' }}> *</span>
+            </label>
+            <select
+              value={data.province}
+              onChange={e => { onChange({ ...data, province: e.target.value }); setErrors(prev => ({ ...prev, province: '' })) }}
+              style={{
+                width: '100%', padding: '0.7rem 0.85rem', boxSizing: 'border-box',
+                background: 'rgba(45,26,14,0.5)',
+                border: errors.province ? '1px solid rgba(239,68,68,0.5)' : '1px solid rgba(92,53,32,0.4)',
+                borderRadius: '6px', color: data.province ? '#f5e6d3' : '#5c3520',
+                fontSize: '0.88rem', outline: 'none', cursor: 'pointer',
+                appearance: 'none', WebkitAppearance: 'none',
+              }}
+            >
+              <option value="" disabled style={{ background: '#1a0f07', color: '#5c3520' }}>Seleccioná</option>
+              {[
+                'Buenos Aires','Ciudad Autónoma de Buenos Aires','Catamarca','Chaco','Chubut',
+                'Córdoba','Corrientes','Entre Ríos','Formosa','Jujuy','La Pampa','La Rioja',
+                'Mendoza','Misiones','Neuquén','Río Negro','Salta','San Juan','San Luis',
+                'Santa Cruz','Santa Fe','Santiago del Estero','Tierra del Fuego','Tucumán',
+              ].map(p => (
+                <option key={p} value={p} style={{ background: '#1a0f07', color: '#f5e6d3' }}>{p}</option>
+              ))}
+            </select>
+            {errors.province && <div style={{ color: '#ef4444', fontSize: '0.75rem', marginTop: '3px' }}>{errors.province}</div>}
+          </div>
         </div>
         {field('Código postal', 'postalCode', '5000')}
       </div>

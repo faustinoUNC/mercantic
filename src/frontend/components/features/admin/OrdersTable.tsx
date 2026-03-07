@@ -342,7 +342,7 @@ export function OrdersTable({ onNewOrdersCount }: OrdersTableProps = {}) {
                 )}
 
                 {/* Address */}
-                {selected.shipping_address && (
+                {(selected.shipping_address || selected.city || selected.province) && (
                   <section className="space-y-3">
                     <h3 className="font-semibold text-sm flex items-center gap-2"><MapPin className="w-4 h-4" />Dirección de envío</h3>
                     <div className="flex items-start gap-2 text-sm">
@@ -371,26 +371,8 @@ export function OrdersTable({ onNewOrdersCount }: OrdersTableProps = {}) {
 
                 {/* Status update */}
                 <section className="space-y-3 border-t pt-4">
-                  <h3 className="font-semibold text-sm">Actualizar estado</h3>
+                  <h3 className="font-semibold text-sm">Actualizar estado de envío</h3>
                   <div className="flex gap-3 flex-wrap">
-                    <div className="flex flex-col gap-1">
-                      <label className="text-xs text-muted-foreground">Pago</label>
-                      <Select
-                        value={selected.payment_status}
-                        onValueChange={async v => {
-                          await updateOrder(selected.id, { payment_status: v as any })
-                          setSelected(prev => prev ? { ...prev, payment_status: v as any } : null)
-                        }}
-                      >
-                        <SelectTrigger className="w-[140px]"><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="pending">Pendiente</SelectItem>
-                          <SelectItem value="paid">Pagado</SelectItem>
-                          <SelectItem value="failed">Fallido</SelectItem>
-                          <SelectItem value="refunded">Reembolsado</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
                     <div className="flex flex-col gap-1">
                       <label className="text-xs text-muted-foreground">Envío</label>
                       <Select
