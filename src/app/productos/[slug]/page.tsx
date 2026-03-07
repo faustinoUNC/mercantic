@@ -31,7 +31,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           <ArrowLeft size={14} /> Volver a modelos
         </Link>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(340px, 100%), 1fr))', gap: '4rem', alignItems: 'start' }}>
+        <div className="product-detail-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(340px, 100%), 1fr))', gap: '4rem', alignItems: 'start' }}>
           {/* Visual */}
           <div style={{
             aspectRatio: '1',
@@ -101,6 +101,15 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
       </div>
 
       <Footer />
+
+      <style>{`
+        @media (max-width: 640px) {
+          .product-detail-grid { gap: 2rem !important; }
+        }
+        @media (max-width: 480px) {
+          .product-detail-grid { gap: 1.5rem !important; }
+        }
+      `}</style>
     </div>
   )
 }

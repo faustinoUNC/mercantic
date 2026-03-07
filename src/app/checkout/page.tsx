@@ -27,7 +27,7 @@ function ProgressBar({ step }: { step: Step }) {
     <div style={{ display: 'flex', alignItems: 'center', gap: 0, marginBottom: '2.5rem' }}>
       {([1, 2, 3, 4] as Step[]).map((s, i) => (
         <div key={s} style={{ display: 'flex', alignItems: 'center', flex: s < 4 ? 1 : undefined }}>
-          <div style={{
+          <div className="ck-progress-circle" style={{
             width: '32px', height: '32px', borderRadius: '50%', flexShrink: 0,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             background: s < step ? '#c4622d' : s === step ? 'linear-gradient(135deg, #c4622d, #e8783a)' : 'rgba(45, 26, 14, 0.6)',
@@ -307,7 +307,7 @@ function StepCustomer({ data, onChange, onNext, onBack }: {
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '1.5rem' }}>
         {field('Dirección', 'address', 'Av. Corrientes 1234, Piso 2', true)}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+        <div className="ck-city-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
           <div>{field('Ciudad', 'city', 'Córdoba', true)}</div>
           <div>{field('Provincia', 'province', 'Córdoba', true)}</div>
         </div>
@@ -382,15 +382,15 @@ function StepPayment({ subtotal, onConfirm, onBack, loading }: {
       </h2>
 
       {/* Method tabs */}
-      <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem' }}>
+      <div className="ck-method-tabs" style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem' }}>
         {([
           { key: 'transferencia', label: 'Transferencia', sub: 'CVU/CBU' },
           { key: 'mercadopago', label: 'MercadoPago', sub: 'Tarjeta/Cuotas' },
           { key: 'modo', label: 'MODO', sub: 'QR Interop.' },
         ] as { key: PaymentMethod; label: string; sub: string }[]).map(m => (
           <button key={m.key} onClick={() => setMethod(m.key)} style={tabStyle(method === m.key)}>
-            <div style={{ fontWeight: 700, fontSize: '0.8rem' }}>{m.label}</div>
-            <div style={{ fontSize: '0.65rem', opacity: 0.7, marginTop: '2px' }}>{m.sub}</div>
+            <div className="ck-tab-label" style={{ fontWeight: 700, fontSize: '0.8rem' }}>{m.label}</div>
+            <div className="ck-tab-sub" style={{ fontSize: '0.65rem', opacity: 0.7, marginTop: '2px' }}>{m.sub}</div>
           </button>
         ))}
       </div>
@@ -408,9 +408,9 @@ function StepPayment({ subtotal, onConfirm, onBack, loading }: {
             { label: 'Titular', value: 'El Mercantic Fogoneros' },
             { label: 'CUIL', value: '20-12345678-9' },
           ].map(row => (
-            <div key={row.label} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.6rem 0', borderBottom: '1px solid rgba(92,53,32,0.2)' }}>
-              <span style={{ color: '#5c3520', fontSize: '0.82rem' }}>{row.label}</span>
-              <span style={{ color: '#c4a882', fontWeight: 600, fontSize: '0.85rem', fontFamily: 'monospace' }}>{row.value}</span>
+            <div key={row.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '0.5rem', padding: '0.6rem 0', borderBottom: '1px solid rgba(92,53,32,0.2)' }}>
+              <span style={{ color: '#5c3520', fontSize: '0.82rem', flexShrink: 0 }}>{row.label}</span>
+              <span className="ck-bank-value" style={{ color: '#c4a882', fontWeight: 600, fontSize: '0.85rem', fontFamily: 'monospace', wordBreak: 'break-all', textAlign: 'right' }}>{row.value}</span>
             </div>
           ))}
           <div style={{ marginTop: '1rem', padding: '0.85rem', background: 'rgba(196,98,45,0.08)', borderRadius: '6px', border: '1px solid rgba(196,98,45,0.15)' }}>
@@ -748,6 +748,39 @@ export default function CheckoutPage() {
       <style>{`
         @keyframes spin { to { transform: rotate(360deg); } }
         input:focus { border-color: rgba(196, 98, 45, 0.6) !important; }
+
+        /* ── Mobile checkout ───────────────────────────────── */
+        @media (max-width: 480px) {
+          /* Payment method tabs: wrap text, smaller font */
+          .ck-method-tabs { gap: 0.3rem !important; }
+          .ck-method-tabs button {
+            padding: 0.65rem 0.25rem !important;
+          }
+          .ck-method-tabs button .ck-tab-label { font-size: 0.7rem !important; }
+          .ck-method-tabs button .ck-tab-sub   { font-size: 0.58rem !important; }
+
+          /* Progress bar: smaller circles on very narrow screens */
+          .ck-progress-circle {
+            width: 26px !important;
+            height: 26px !important;
+            font-size: 0.72rem !important;
+          }
+          /* CBU / bank data value: break long strings */
+          .ck-bank-value {
+            word-break: break-all !important;
+            letter-spacing: 0 !important;
+            font-size: 0.78rem !important;
+            text-align: right;
+            max-width: 55%;
+          }
+          /* City/Province grid: stack on very small screens */
+          .ck-city-grid {
+            grid-template-columns: 1fr !important;
+          }
+        }
+        @media (max-width: 360px) {
+          .ck-method-tabs button .ck-tab-label { font-size: 0.62rem !important; }
+        }
       `}</style>
     </div>
   )

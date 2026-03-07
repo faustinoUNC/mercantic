@@ -157,13 +157,13 @@ export function OrdersTable() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>ID</TableHead>
-                  <TableHead>Fecha</TableHead>
+                  <TableHead className="w-[50px]">ID</TableHead>
+                  <TableHead className="hidden sm:table-cell">Fecha</TableHead>
                   <TableHead>Cliente</TableHead>
-                  <TableHead>Producto</TableHead>
+                  <TableHead className="hidden md:table-cell">Producto</TableHead>
                   <TableHead>Monto</TableHead>
                   <TableHead>Envío</TableHead>
-                  <TableHead></TableHead>
+                  <TableHead className="w-[80px]"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -176,14 +176,14 @@ export function OrdersTable() {
                 ) : paginated.map(order => (
                   <TableRow key={order.id}>
                     <TableCell className="font-mono text-xs">#{order.id}</TableCell>
-                    <TableCell className="text-sm whitespace-nowrap">{formatDate(order.created_at)}</TableCell>
+                    <TableCell className="hidden sm:table-cell text-sm whitespace-nowrap">{formatDate(order.created_at)}</TableCell>
                     <TableCell>
                       <div className="text-sm">
                         <div className="font-medium">{order.customer?.name ?? '—'}</div>
                         <div className="text-muted-foreground text-xs">{order.customer?.phone ?? order.customer?.email ?? '—'}</div>
                       </div>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="hidden md:table-cell">
                       {order.variant ? (
                         <div className="text-sm">
                           <div className="font-medium">{order.variant.product?.name ?? '—'}</div>
@@ -191,13 +191,13 @@ export function OrdersTable() {
                         </div>
                       ) : '—'}
                     </TableCell>
-                    <TableCell className="font-semibold">{formatPrice(order.final_amount)}</TableCell>
+                    <TableCell className="font-semibold whitespace-nowrap">{formatPrice(order.final_amount)}</TableCell>
                     <TableCell>
                       <Select
                         value={order.delivery_status}
                         onValueChange={v => updateOrder(order.id, { delivery_status: v as any })}
                       >
-                        <SelectTrigger className={`w-[130px] font-medium text-xs ${DELIVERY_CONFIG[order.delivery_status]?.trigger ?? ''}`}>
+                        <SelectTrigger className={`w-[110px] sm:w-[130px] font-medium text-xs ${DELIVERY_CONFIG[order.delivery_status]?.trigger ?? ''}`}>
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -213,8 +213,8 @@ export function OrdersTable() {
                       </Select>
                     </TableCell>
                     <TableCell>
-                      <Button variant="ghost" size="sm" onClick={() => setSelected(order)}>
-                        Ver detalle
+                      <Button variant="ghost" size="sm" className="text-xs px-2" onClick={() => setSelected(order)}>
+                        Ver
                       </Button>
                     </TableCell>
                   </TableRow>

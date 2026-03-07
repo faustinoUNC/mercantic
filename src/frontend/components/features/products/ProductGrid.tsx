@@ -316,10 +316,10 @@ function SortBar({
         display:        'flex',
         alignItems:     'center',
         justifyContent: 'space-between',
-        gap:            '1rem',
+        gap:            '0.75rem',
         flexWrap:       'wrap',
-        marginBottom:   '2.5rem',
-        padding:        '0.85rem 1.1rem',
+        marginBottom:   '1.75rem',
+        padding:        '0.75rem 1rem',
         background:     'rgba(30,15,7,0.6)',
         border:         '1px solid rgba(92,53,32,0.25)',
         borderRadius:   '8px',
@@ -388,7 +388,7 @@ export function ProductGrid({ products }: { products: ProductWithVariants[] }) {
   const sorted = sortProducts(products, sort)
 
   return (
-    <div style={{ maxWidth: '1180px', margin: '0 auto', padding: '3.5rem 2rem 5rem' }}>
+    <div className="pg-wrap" style={{ maxWidth: '1180px', margin: '0 auto', padding: '3.5rem 2rem 5rem' }}>
       <SortBar sort={sort} setSort={setSort} count={products.length} />
 
       <AnimatePresence mode="wait">
@@ -415,6 +415,16 @@ export function ProductGrid({ products }: { products: ProductWithVariants[] }) {
           No hay productos disponibles por el momento.
         </div>
       )}
+
+      <style>{`
+        @media (max-width: 480px) {
+          .pg-wrap { padding: 2rem 1rem 3.5rem !important; }
+          /* 2 columnas en mobile si la pantalla lo permite */
+        }
+        @media (max-width: 380px) {
+          .pg-wrap { padding: 1.5rem 0.75rem 3rem !important; }
+        }
+      `}</style>
     </div>
   )
 }

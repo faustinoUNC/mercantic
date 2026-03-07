@@ -38,7 +38,7 @@ export function HowItWorks() {
       overflow: 'hidden',
     }}>
       {/* Vertical ember line */}
-      <div style={{
+      <div className="hiw-vline" style={{
         position: 'absolute',
         left: '50%',
         top: '10%',
@@ -167,8 +167,7 @@ export function HowItWorks() {
       <style>{`
         /* ── Mobile: stack steps as single column ── */
         @media (max-width: 600px) {
-          /* Hide the vertical center line */
-          section > div[style*="position: absolute; left: 50%"] { display: none; }
+          .hiw-vline { display: none !important; }
 
           .step-row {
             grid-template-columns: 40px 1fr !important;
@@ -182,7 +181,6 @@ export function HowItWorks() {
             visibility: visible !important;
           }
           .step-empty { display: none !important; }
-          /* Node takes first column, content takes second */
           .step-row > div:nth-child(2) {
             grid-column: 1;
             grid-row: 1;
