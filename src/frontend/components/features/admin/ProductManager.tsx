@@ -816,7 +816,6 @@ function NewProductDialog({
   const [open, setOpen] = useState(false)
   const [name, setName] = useState('')
   const [slug, setSlug] = useState('')
-  const [slugEdited, setSlugEdited] = useState(false)
   const [description, setDescription] = useState('')
   const [material, setMaterial] = useState('Chapa 3,2mm')
   const [includesRaw, setIncludesRaw] = useState('Parrilla, Estaca, Tapa')
@@ -829,8 +828,8 @@ function NewProductDialog({
   const [imageUrls, setImageUrls] = useState<string[]>([])
 
   useEffect(() => {
-    if (!slugEdited) setSlug(toSlug(name))
-  }, [name, slugEdited])
+    setSlug(toSlug(name))
+  }, [name])
 
   const addVariant = () => {
     setVariants(v => [...v, { size: '1.25m', color: 'negro', price: '', sale_price: '' }])
@@ -871,7 +870,7 @@ function NewProductDialog({
     setOpen(false)
     setCreatedProductId(null)
     setImageUrls([])
-    setName(''); setSlug(''); setSlugEdited(false)
+    setName(''); setSlug('')
     setDescription(''); setMaterial('Chapa 3,2mm'); setIncludesRaw('Parrilla, Estaca, Tapa')
     setVariants([{ size: '1.25m', color: 'negro', price: '', sale_price: '' }])
   }

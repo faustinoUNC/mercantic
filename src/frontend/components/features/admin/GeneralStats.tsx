@@ -227,10 +227,10 @@ export function GeneralStats() {
     <div className="space-y-6">
       {/* KPI cards */}
       <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
-        <KpiCard label="Total Pedidos" value={summary.total_orders} sub={`${summary.paid_orders} pagados`} icon={Package} tip="Total de pedidos registrados" />
-        <KpiCard label="Ingresos" value={formatPrice(summary.total_revenue)} sub="pagos aprobados" icon={TrendingUp} tip="Suma de montos finales de pedidos pagados" highlight />
-        <KpiCard label="Ticket Promedio" value={formatPrice(summary.average_order_value)} sub="por pedido pagado" icon={CheckCircle} tip="Monto final promedio de pedidos pagados" />
-        <KpiCard label="Por Despachar" value={summary.pending_delivery} sub="envíos pendientes" icon={Clock} tip="Pedidos que aún no fueron enviados (todos los estados de pago)" />
+        <KpiCard label="Total Pedidos" value={summary.total_orders} sub="registrados" icon={Package} tip="Cantidad total de pedidos en el sistema" />
+        <KpiCard label="Ingresos" value={formatPrice(summary.total_revenue)} sub="total acumulado" icon={TrendingUp} tip="Suma de montos finales de todos los pedidos" highlight />
+        <KpiCard label="Ticket Promedio" value={formatPrice(summary.average_order_value)} sub="por pedido" icon={CheckCircle} tip="Monto final promedio de todos los pedidos" />
+        <KpiCard label="Por Despachar" value={summary.pending_delivery} sub="envíos pendientes" icon={Clock} tip="Pedidos que aún no fueron despachados" />
       </div>
 
       {/* Bar chart */}
