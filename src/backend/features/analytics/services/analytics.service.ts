@@ -8,24 +8,23 @@ export async function getGeneralStats(viewMode: ViewMode = 'days', offset = 0): 
   const productOrders = await repo.getOrdersByProduct()
   const provinceOrders = await repo.getOrdersByProvince()
 
-  // Summary
-  const paid = allOrders.filter(o => o.payment_status === 'paid')
-  const totalRevenue = paid.reduce((sum, o) => sum + (o.final_amount ?? 0), 0)
+  // Summary — all orders are paid by business rule
+  const totalRevenue = allOrders.reduce((sum, o) => sum + (o.final_amount ?? 0), 0)
 
   const summary = {
     total_orders: allOrders.length,
-    paid_orders: paid.length,
+    paid_orders: allOrders.length,
     total_revenue: totalRevenue,
-    average_order_value: paid.length > 0 ? totalRevenue / paid.length : 0,
+    average_order_value: allOrders.length > 0 ? totalRevenue / allOrders.length : 0,
     pending_delivery: allOrders.filter(o => o.delivery_status === 'pending').length,
   }
 
-  // Payment status
+  // Payment status (legacy field — all orders are paid)
   const payment_status = {
-    pending: allOrders.filter(o => o.payment_status === 'pending').length,
-    paid: allOrders.filter(o => o.payment_status === 'paid').length,
-    failed: allOrders.filter(o => o.payment_status === 'failed').length,
-    refunded: allOrders.filter(o => o.payment_status === 'refunded').length,
+    pending: 0,
+    paid: allOrders.length,
+    failed: 0,
+    refunded: 0,
   }
 
   // Delivery status (todos los pedidos)
@@ -46,10 +45,8 @@ export async function getGeneralStats(viewMode: ViewMode = 'days', offset = 0): 
     const key = product.slug
     const existing = productMap.get(key) ?? { name: product.name, slug: product.slug, total: 0, paid: 0, revenue: 0 }
     existing.total++
-    if (order.payment_status === 'paid') {
-      existing.paid++
-      existing.revenue += order.final_amount ?? 0
-    }
+    existing.paid++
+    existing.revenue += order.final_amount ?? 0
     productMap.set(key, existing)
   }
 
@@ -72,10 +69,8 @@ export async function getGeneralStats(viewMode: ViewMode = 'days', offset = 0): 
       product_name: variant.product?.name ?? '', total: 0, paid: 0, revenue: 0
     }
     existing.total++
-    if (order.payment_status === 'paid') {
-      existing.paid++
-      existing.revenue += order.final_amount ?? 0
-    }
+    existing.paid++
+    existing.revenue += order.final_amount ?? 0
     variantMap.set(key, existing)
   }
 
@@ -91,7 +86,7 @@ export async function getGeneralStats(viewMode: ViewMode = 'days', offset = 0): 
     if (!prov) continue
     const existing = provinceMap.get(prov) ?? { total: 0, revenue: 0 }
     existing.total++
-    if (order.payment_status === 'paid') existing.revenue += order.final_amount ?? 0
+    existing.revenue += order.final_amount ?? 0
     provinceMap.set(prov, existing)
   }
   const by_province = Array.from(provinceMap.entries())
@@ -121,11 +116,10 @@ async function getDailySalesByMode(viewMode: ViewMode, offset: number): Promise<
   }
 
   const orders = await repo.getOrdersByPeriod(from.toISOString(), to.toISOString())
-  const paid = orders.filter(o => o.payment_status === 'paid')
 
   const bucketMap = new Map<string, { count: number; revenue: number }>()
 
-  for (const order of paid) {
+  for (const order of orders) {
     const date = new Date(order.created_at)
     let key: string
 
