@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Flame, Check, ChevronRight, ShoppingBag, User, CreditCard, CheckCircle, Minus, Plus, Trash2, Tag, AlertCircle, MessageCircle } from 'lucide-react'
+import { Flame, Check, ChevronRight, ShoppingBag, User, CreditCard, CheckCircle, Minus, Plus, Trash2, Tag, AlertCircle } from 'lucide-react'
 import { useCart } from '@/frontend/context/CartContext'
 
 const COLOR_LABELS: Record<string, string> = { negro: 'Negro', oxido: 'Óxido' }
@@ -652,13 +652,6 @@ function StepConfirmation({ orderId, paymentMethod, subtotal }: { orderId: numbe
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-        <a
-          href="https://wa.me/5493513000000"
-          target="_blank" rel="noopener noreferrer"
-          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', background: 'rgba(37,211,102,0.1)', border: '1px solid rgba(37,211,102,0.3)', color: '#25d366', padding: '0.85rem', borderRadius: '8px', textDecoration: 'none', fontWeight: 600, fontSize: '0.85rem' }}
-        >
-          <MessageCircle size={16} /> Consultar por WhatsApp
-        </a>
         <Link href="/" style={{ display: 'block', textAlign: 'center', color: '#5c3520', textDecoration: 'none', fontSize: '0.85rem', padding: '0.85rem', border: '1px solid rgba(92,53,32,0.3)', borderRadius: '8px' }}>
           Volver al inicio
         </Link>

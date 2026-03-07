@@ -227,29 +227,6 @@ export function Hero() {
             Ver Modelos
           </Link>
 
-          <a
-            href="https://wa.me/5493513000000"
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '8px',
-              border: '1px solid rgba(196, 98, 45, 0.5)',
-              color: '#f5e6d3',
-              padding: '0.9rem 2rem',
-              borderRadius: '4px',
-              textDecoration: 'none',
-              fontWeight: 600,
-              fontSize: '0.875rem',
-              letterSpacing: '0.1em',
-              textTransform: 'uppercase',
-              background: 'rgba(196, 98, 45, 0.08)',
-            }}
-          >
-            Consultar por WhatsApp
-          </a>
         </motion.div>
 
         {/* Quality pillars */}
