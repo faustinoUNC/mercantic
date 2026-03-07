@@ -26,26 +26,21 @@ export function FloatingWhatsApp() {
 
       <style>{`
         .float-wa {
-          display: none;
-        }
-        @media (max-width: 768px) {
-          .float-wa {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: fixed;
-            bottom: 1.4rem;
-            right: 1.25rem;
-            z-index: 9000;
-            background: #25d366;
-            color: #fff;
-            text-decoration: none;
-            width: 54px;
-            height: 54px;
-            border-radius: 50%;
-            box-shadow: 0 4px 20px rgba(37, 211, 102, 0.45), 0 2px 8px rgba(0,0,0,0.3);
-            animation: waFloat 3s ease-in-out infinite;
-          }
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          position: fixed;
+          bottom: 1.4rem;
+          right: 1.25rem;
+          z-index: 9000;
+          background: #25d366;
+          color: #fff;
+          text-decoration: none;
+          width: 54px;
+          height: 54px;
+          border-radius: 50%;
+          box-shadow: 0 4px 20px rgba(37, 211, 102, 0.45), 0 2px 8px rgba(0,0,0,0.3);
+          animation: waFloat 3s ease-in-out infinite;
         }
         @keyframes waFloat {
           0%, 100% { transform: translateY(0px); }

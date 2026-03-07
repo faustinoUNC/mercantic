@@ -120,21 +120,6 @@ export function Navbar() {
                 {label}
               </Link>
             ))}
-            <a
-              href="https://wa.me/5493513000000"
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={() => setMenuOpen(false)}
-              style={{
-                background: 'linear-gradient(135deg, #c4622d, #e8783a)',
-                color: '#f5e6d3', padding: '0.85rem 1.5rem',
-                borderRadius: '4px', textDecoration: 'none', fontWeight: 700,
-                textAlign: 'center', letterSpacing: '0.06em', textTransform: 'uppercase',
-                marginTop: '0.25rem',
-              }}
-            >
-              Consultar por WhatsApp
-            </a>
           </div>
         )}
       </nav>
