@@ -1,8 +1,13 @@
 'use client'
 
+import { usePathname } from 'next/navigation'
+
 const WA_URL = 'https://wa.me/5493513000000?text=Hola!%20Me%20interesa%20un%20fogonero%20El%20Mercantic'
 
 export function FloatingWhatsApp() {
+  const pathname = usePathname()
+  if (pathname.startsWith('/admin') || pathname.startsWith('/login')) return null
+
   return (
     <>
       <a
