@@ -230,7 +230,7 @@ export function GeneralStats() {
         <KpiCard label="Total Pedidos" value={summary.total_orders} sub={`${summary.paid_orders} pagados`} icon={Package} tip="Total de pedidos registrados" />
         <KpiCard label="Ingresos" value={formatPrice(summary.total_revenue)} sub="pagos aprobados" icon={TrendingUp} tip="Suma de montos finales de pedidos pagados" highlight />
         <KpiCard label="Ticket Promedio" value={formatPrice(summary.average_order_value)} sub="por pedido pagado" icon={CheckCircle} tip="Monto final promedio de pedidos pagados" />
-        <KpiCard label="Por Despachar" value={summary.pending_delivery} sub="envíos pendientes" icon={Clock} tip="Pedidos pagados que aún no fueron enviados" />
+        <KpiCard label="Por Despachar" value={summary.pending_delivery} sub="envíos pendientes" icon={Clock} tip="Pedidos que aún no fueron enviados (todos los estados de pago)" />
       </div>
 
       {/* Bar chart */}

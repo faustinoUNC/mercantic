@@ -17,7 +17,7 @@ export async function getGeneralStats(viewMode: ViewMode = 'days', offset = 0): 
     paid_orders: paid.length,
     total_revenue: totalRevenue,
     average_order_value: paid.length > 0 ? totalRevenue / paid.length : 0,
-    pending_delivery: allOrders.filter(o => o.payment_status === 'paid' && o.delivery_status === 'pending').length,
+    pending_delivery: allOrders.filter(o => o.delivery_status === 'pending').length,
   }
 
   // Payment status
@@ -28,11 +28,11 @@ export async function getGeneralStats(viewMode: ViewMode = 'days', offset = 0): 
     refunded: allOrders.filter(o => o.payment_status === 'refunded').length,
   }
 
-  // Delivery status (solo pedidos pagados)
+  // Delivery status (todos los pedidos)
   const delivery_status = {
-    pending: paid.filter(o => o.delivery_status === 'pending').length,
-    shipped: paid.filter(o => o.delivery_status === 'shipped').length,
-    delivered: paid.filter(o => o.delivery_status === 'delivered').length,
+    pending: allOrders.filter(o => o.delivery_status === 'pending').length,
+    shipped: allOrders.filter(o => o.delivery_status === 'shipped').length,
+    delivered: allOrders.filter(o => o.delivery_status === 'delivered').length,
   }
 
   // Daily sales by view mode
