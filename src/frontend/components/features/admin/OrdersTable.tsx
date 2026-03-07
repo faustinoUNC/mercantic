@@ -35,8 +35,16 @@ function DeliveryBadge({ status }: { status: string }) {
   )
 }
 
-export function OrdersTable() {
+interface OrdersTableProps {
+  onNewOrdersCount?: (n: number) => void
+}
+
+export function OrdersTable({ onNewOrdersCount }: OrdersTableProps = {}) {
   const { orders, isLoading, lastUpdated, newOrdersCount, clearNewOrders, updateOrder } = useOrders()
+
+  useEffect(() => {
+    onNewOrdersCount?.(newOrdersCount)
+  }, [newOrdersCount, onNewOrdersCount])
   const [search, setSearch] = useState('')
   const [deliveryFilter, setDeliveryFilter] = useState('all')
   const [page, setPage] = useState(1)

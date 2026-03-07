@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
@@ -23,6 +23,9 @@ const TABS: { id: Tab; label: string; icon: typeof ShoppingBag }[] = [
 export default function AdminPage() {
   const router = useRouter()
   const [tab, setTab] = useState<Tab>('orders')
+  const [newOrders, setNewOrders] = useState(0)
+
+  const handleNewOrdersCount = useCallback((n: number) => setNewOrders(n), [])
 
   const handleLogout = async () => {
     const supabase = createClient()
@@ -69,8 +72,8 @@ export default function AdminPage() {
             {TABS.map(({ id, label, icon: Icon }) => (
               <button
                 key={id}
-                onClick={() => setTab(id)}
-                className={`flex items-center gap-2 px-4 py-2 text-sm font-medium whitespace-nowrap border-b-2 -mb-px transition-colors ${
+                onClick={() => { setTab(id); if (id === 'orders') setNewOrders(0) }}
+                className={`relative flex items-center gap-2 px-4 py-2 text-sm font-medium whitespace-nowrap border-b-2 -mb-px transition-colors ${
                   tab === id
                     ? 'border-primary text-primary'
                     : 'border-transparent text-muted-foreground hover:text-foreground hover:border-muted'
@@ -78,12 +81,20 @@ export default function AdminPage() {
               >
                 <Icon className="w-4 h-4" />
                 {label}
+                {id === 'orders' && newOrders > 0 && (
+                  <span className="relative flex h-4 w-4 items-center justify-center">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-60" />
+                    <span className="relative inline-flex items-center justify-center rounded-full h-4 w-4 bg-amber-500 text-white text-[10px] font-bold leading-none">
+                      {newOrders > 9 ? '9+' : newOrders}
+                    </span>
+                  </span>
+                )}
               </button>
             ))}
           </div>
 
           {/* Tab content */}
-          {tab === 'orders'    && <OrdersTable />}
+          {tab === 'orders'    && <OrdersTable onNewOrdersCount={handleNewOrdersCount} />}
           {tab === 'stats'     && <GeneralStats />}
           {tab === 'products'  && <ProductManager />}
           {tab === 'discounts' && <DiscountManager />}

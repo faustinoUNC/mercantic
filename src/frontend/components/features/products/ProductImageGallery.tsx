@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { ChevronLeft, ChevronRight, X, ZoomIn } from 'lucide-react'
 
 interface Props {
@@ -15,6 +15,15 @@ export function ProductImageGallery({ images, productName, accentColor, glow }: 
   const [lightbox, setLightbox] = useState(false)
   const [zoomed, setZoomed] = useState(false)
   const [objPos, setObjPos] = useState({ x: 50, y: 50 })
+  const [isMobile, setIsMobile] = useState(false)
+  const imgRef = useRef<HTMLImageElement>(null)
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth <= 768 || 'ontouchstart' in window)
+    check()
+    window.addEventListener('resize', check)
+    return () => window.removeEventListener('resize', check)
+  }, [])
 
   const prev = () => setCurrent(c => (c - 1 + images.length) % images.length)
   const next = () => setCurrent(c => (c + 1) % images.length)
@@ -225,7 +234,9 @@ export function ProductImageGallery({ images, productName, accentColor, glow }: 
             color: 'rgba(255,255,255,0.4)', fontSize: '0.72rem', letterSpacing: '0.08em',
             pointerEvents: 'none', whiteSpace: 'nowrap',
           }}>
-            {zoomed ? 'Clic para alejar · Mover el cursor para explorar' : 'Clic para ampliar'}
+            {isMobile
+              ? 'Pellizca para hacer zoom'
+              : zoomed ? 'Clic para alejar · Mover el cursor para explorar' : 'Clic para ampliar'}
           </div>
 
           {/* Nav arrows in lightbox */}
@@ -263,42 +274,50 @@ export function ProductImageGallery({ images, productName, accentColor, glow }: 
           )}
 
           {/* Zoomable image container */}
-          <div
-            style={{
-              width: '100%', height: '100%',
-              overflow: 'hidden',
-              cursor: zoomed ? 'zoom-out' : 'zoom-in',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}
-            onMouseMove={e => {
-              if (!zoomed) return
-              const rect = e.currentTarget.getBoundingClientRect()
-              setObjPos({
-                x: ((e.clientX - rect.left) / rect.width) * 100,
-                y: ((e.clientY - rect.top) / rect.height) * 100,
-              })
-            }}
-            onClick={() => {
-              setZoomed(z => !z)
-              setObjPos({ x: 50, y: 50 })
-            }}
-          >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={images[current]}
-              alt={`${productName} — ampliado`}
-              style={{
-                width: '100%',
-                height: '100%',
-                objectFit: zoomed ? 'cover' : 'contain',
-                objectPosition: zoomed ? `${objPos.x}% ${objPos.y}%` : 'center',
-                transition: zoomed ? 'none' : 'object-fit 0.2s',
-                userSelect: 'none',
-                WebkitUserDrag: 'none',
-              } as React.CSSProperties}
-              draggable={false}
-            />
-          </div>
+          {isMobile ? (
+            // ── Mobile: native pinch-zoom via overflow scroll trick ──────────
+            <div style={{ width: '100%', height: '100%', overflow: 'auto', WebkitOverflowScrolling: 'touch', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                ref={imgRef}
+                src={images[current]}
+                alt={`${productName} — ampliado`}
+                style={{
+                  maxWidth: '100%', maxHeight: '100%',
+                  objectFit: 'contain',
+                  touchAction: 'pan-x pan-y pinch-zoom',
+                  userSelect: 'none',
+                } as React.CSSProperties}
+                draggable={false}
+              />
+            </div>
+          ) : (
+            // ── Desktop: mouse-position zoom ─────────────────────────────────
+            <div
+              style={{ width: '100%', height: '100%', overflow: 'hidden', cursor: zoomed ? 'zoom-out' : 'zoom-in', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              onMouseMove={e => {
+                if (!zoomed) return
+                const rect = e.currentTarget.getBoundingClientRect()
+                setObjPos({ x: ((e.clientX - rect.left) / rect.width) * 100, y: ((e.clientY - rect.top) / rect.height) * 100 })
+              }}
+              onClick={() => { setZoomed(z => !z); setObjPos({ x: 50, y: 50 }) }}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={images[current]}
+                alt={`${productName} — ampliado`}
+                style={{
+                  width: '100%', height: '100%',
+                  objectFit: zoomed ? 'cover' : 'contain',
+                  objectPosition: zoomed ? `${objPos.x}% ${objPos.y}%` : 'center',
+                  transition: zoomed ? 'none' : 'object-fit 0.2s',
+                  userSelect: 'none',
+                  WebkitUserDrag: 'none',
+                } as React.CSSProperties}
+                draggable={false}
+              />
+            </div>
+          )}
         </div>
       )}
 

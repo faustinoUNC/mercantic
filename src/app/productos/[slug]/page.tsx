@@ -55,18 +55,29 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
 
           {/* Details */}
           <div>
-            <div style={{ marginBottom: '1.5rem' }}>
-              <div style={{ color: '#c4622d', fontSize: '0.7rem', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: '0.5rem', fontWeight: 600 }}>
+            {/* Name — compact */}
+            <div style={{ marginBottom: '1rem' }}>
+              <div style={{ color: '#c4622d', fontSize: '0.7rem', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: '0.4rem', fontWeight: 600 }}>
                 El Mercantic Fogoneros
               </div>
-              <h1 style={{ fontFamily: 'var(--font-playfair), Georgia, serif', fontSize: 'clamp(2rem, 5vw, 2.75rem)', fontWeight: 900, color: '#f5e6d3', lineHeight: 1, marginBottom: '0.5rem' }}>
+              <h1 style={{ fontFamily: 'var(--font-playfair), Georgia, serif', fontSize: 'clamp(2rem, 5vw, 2.75rem)', fontWeight: 900, color: '#f5e6d3', lineHeight: 1 }}>
                 {product.name}
               </h1>
             </div>
 
+            {/* ── Add to cart FIRST — always visible ── */}
+            <div style={{ background: 'rgba(45,26,14,0.4)', border: '1px solid rgba(92,53,32,0.35)', borderRadius: '10px', padding: '1rem', marginBottom: '1.25rem' }}>
+              <AddToCartSection
+                productInfo={{ id: product.id, name: product.name, slug: product.slug }}
+                variants={product.variants}
+                includes={product.includes ?? undefined}
+              />
+            </div>
+
+            {/* Description below the CTA */}
             {product.description && (
               <p style={{
-                color: '#7a5c44', lineHeight: 1.7, marginBottom: '1.25rem', fontSize: '0.9rem',
+                color: '#7a5c44', lineHeight: 1.7, marginBottom: '1rem', fontSize: '0.88rem',
                 overflow: 'hidden', display: '-webkit-box',
                 WebkitLineClamp: 3, WebkitBoxOrient: 'vertical',
               }}>
@@ -74,7 +85,8 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
               </p>
             )}
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '0.5rem', marginBottom: '1.25rem' }}>
+            {/* Info chips — below */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '0.5rem' }}>
               {([
                 product.material ? { icon: Shield, label: 'Material', value: product.material } : null,
                 product.includes?.length ? { icon: Package, label: 'Incluye', value: product.includes.join(' · ') } : null,
@@ -91,14 +103,6 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                   <div style={{ color: '#c4a882', fontSize: '0.8rem', fontWeight: 500, marginTop: '2px' }}>{value}</div>
                 </div>
               ))}
-            </div>
-
-            <div style={{ background: 'rgba(45,26,14,0.4)', border: '1px solid rgba(92,53,32,0.35)', borderRadius: '10px', padding: '1rem', marginBottom: '1rem' }}>
-              <AddToCartSection
-                productInfo={{ id: product.id, name: product.name, slug: product.slug }}
-                variants={product.variants}
-                includes={product.includes ?? undefined}
-              />
             </div>
           </div>
         </div>
