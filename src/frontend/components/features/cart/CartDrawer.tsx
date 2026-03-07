@@ -146,11 +146,13 @@ export function CartDrawer({ open, onClose }: { open: boolean; onClose: () => vo
         animate={{ x: open ? 0 : '100%' }}
         transition={{ type: 'spring', stiffness: 320, damping: 36, mass: 0.8 }}
         style={{
-          position: 'fixed', top: 0, right: 0, bottom: 0, zIndex: 9101,
+          position: 'fixed', top: 0, right: 0, zIndex: 9101,
           width: 'min(420px, 100vw)',
+          height: '100dvh',
           background: 'linear-gradient(170deg, #130905 0%, #0c0602 60%, #0a0401 100%)',
           borderLeft: '1px solid rgba(92,53,32,0.28)',
           display: 'flex', flexDirection: 'column',
+          overflow: 'hidden',
           boxShadow: '-12px 0 60px rgba(0,0,0,0.7)',
           pointerEvents: open ? 'auto' : 'none',
         }}
@@ -187,7 +189,7 @@ export function CartDrawer({ open, onClose }: { open: boolean; onClose: () => vo
         </div>
 
         {/* ── Items ── */}
-        <div className="cart-scroll" style={{ flex: 1, overflowY: 'auto', padding: '0.9rem 1.1rem', WebkitOverflowScrolling: 'touch' }}>
+        <div className="cart-scroll" style={{ flex: '1 1 0', minHeight: 0, overflowY: 'auto', padding: '0.9rem 1.1rem', WebkitOverflowScrolling: 'touch' }}>
           {items.length === 0 ? (
             <motion.div
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4 }}
