@@ -12,7 +12,7 @@ const ORANGE = '#e8783a'
 const GOLD   = '#d4a55a'
 const RUST   = '#c4622d'
 
-type SortKey = 'default' | 'price_asc' | 'price_desc'
+type SortKey = 'default' | 'new' | 'price_asc' | 'price_desc'
 
 function getLowestPrice(p: ProductWithVariants) {
   const active = p.variants.filter(v => v.active)
@@ -22,6 +22,8 @@ function getLowestPrice(p: ProductWithVariants) {
 
 function sortProducts(products: ProductWithVariants[], sort: SortKey) {
   const arr = [...products]
+  if (sort === 'new')
+    return arr.sort((a, b) => (b.is_new ? 1 : 0) - (a.is_new ? 1 : 0))
   if (sort === 'price_asc')
     return arr.sort((a, b) => (getLowestPrice(a) ?? Infinity) - (getLowestPrice(b) ?? Infinity))
   if (sort === 'price_desc')
@@ -141,7 +143,7 @@ function ProductCard({ product }: { product: ProductWithVariants }) {
                   letterSpacing: '0.28em', textTransform: 'uppercase',
                   color: '#f5e6d3',
                 }}>
-                  Nuevo
+                  Estreno
                 </span>
               </span>
             )}
@@ -303,6 +305,7 @@ function SortBar({
 }) {
   const OPTIONS: { key: SortKey; label: string }[] = [
     { key: 'default',    label: 'Destacados' },
+    { key: 'new',        label: 'Estrenos' },
     { key: 'price_asc',  label: 'Menor precio' },
     { key: 'price_desc', label: 'Mayor precio' },
   ]
