@@ -57,7 +57,7 @@ function Item({ item, onRemove, onQty }: {
             <div style={{ fontFamily: 'var(--font-playfair), Georgia, serif', color: CREAM, fontWeight: 700, fontSize: '0.88rem', marginBottom: '2px', lineHeight: 1.2 }}>
               {item.productName}
             </div>
-            <div style={{ color: '#5c3820', fontSize: '0.67rem', letterSpacing: '0.06em', marginBottom: '4px' }}>
+            <div style={{ color: '#c4a882', fontSize: '0.67rem', letterSpacing: '0.06em', marginBottom: '4px' }}>
               {item.size} · {COLOR_LABELS[item.color] ?? item.color}
             </div>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: '5px', flexWrap: 'wrap' }}>
@@ -65,12 +65,12 @@ function Item({ item, onRemove, onQty }: {
                 ${(displayPrice * item.quantity).toLocaleString('es-AR')}
               </span>
               {hasSale && (
-                <span style={{ color: '#3d2415', fontSize: '0.67rem', textDecoration: 'line-through' }}>
+                <span style={{ color: '#c4a882', fontSize: '0.67rem', textDecoration: 'line-through' }}>
                   ${(item.price * item.quantity).toLocaleString('es-AR')}
                 </span>
               )}
               {item.quantity > 1 && (
-                <span style={{ color: '#4a2c1a', fontSize: '0.62rem' }}>
+                <span style={{ color: '#9a7c60', fontSize: '0.62rem' }}>
                   (${displayPrice.toLocaleString('es-AR')} c/u)
                 </span>
               )}
@@ -80,9 +80,9 @@ function Item({ item, onRemove, onQty }: {
           {/* Remove */}
           <button
             onClick={onRemove}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#3d2415', padding: '2px', flexShrink: 0, display: 'flex', alignItems: 'center', borderRadius: '4px', transition: 'color 0.2s' }}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#c4a882', padding: '2px', flexShrink: 0, display: 'flex', alignItems: 'center', borderRadius: '4px', transition: 'color 0.2s' }}
             onMouseEnter={e => e.currentTarget.style.color = '#ef4444'}
-            onMouseLeave={e => e.currentTarget.style.color = '#3d2415'}
+            onMouseLeave={e => e.currentTarget.style.color = '#c4a882'}
           >
             <Trash2 size={13} />
           </button>
@@ -103,9 +103,9 @@ function StepButton({ onClick, children }: { onClick: () => void; children: Reac
   return (
     <button
       onClick={onClick}
-      style={{ width: '26px', height: '26px', borderRadius: '4px', background: 'transparent', border: 'none', cursor: 'pointer', color: '#7a5c44', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.15s, color 0.15s' }}
+      style={{ width: '26px', height: '26px', borderRadius: '4px', background: 'transparent', border: 'none', cursor: 'pointer', color: '#c4a882', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.15s, color 0.15s' }}
       onMouseEnter={e => { e.currentTarget.style.background = 'rgba(92,53,32,0.35)'; e.currentTarget.style.color = CREAM }}
-      onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#7a5c44' }}
+      onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#c4a882' }}
     >
       {children}
     </button>
@@ -171,7 +171,7 @@ export function CartDrawer({ open, onClose }: { open: boolean; onClose: () => vo
                 Mi Carrito
               </div>
               {itemCount > 0 && (
-                <div style={{ color: '#5c3520', fontSize: '0.62rem', letterSpacing: '0.08em', marginTop: '2px' }}>
+                <div style={{ color: '#c4a882', fontSize: '0.62rem', letterSpacing: '0.08em', marginTop: '2px' }}>
                   {itemCount} {itemCount === 1 ? 'producto' : 'productos'}
                 </div>
               )}
@@ -180,9 +180,9 @@ export function CartDrawer({ open, onClose }: { open: boolean; onClose: () => vo
 
           <button
             onClick={onClose}
-            style={{ background: 'rgba(92,53,32,0.1)', border: '1px solid rgba(92,53,32,0.2)', borderRadius: '6px', cursor: 'pointer', color: '#5c3520', width: '30px', height: '30px', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.18s', flexShrink: 0 }}
+            style={{ background: 'rgba(92,53,32,0.1)', border: '1px solid rgba(92,53,32,0.2)', borderRadius: '6px', cursor: 'pointer', color: '#c4a882', width: '30px', height: '30px', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.18s', flexShrink: 0 }}
             onMouseEnter={e => { e.currentTarget.style.color = CREAM; e.currentTarget.style.background = 'rgba(92,53,32,0.22)' }}
-            onMouseLeave={e => { e.currentTarget.style.color = '#5c3520'; e.currentTarget.style.background = 'rgba(92,53,32,0.1)' }}
+            onMouseLeave={e => { e.currentTarget.style.color = '#c4a882'; e.currentTarget.style.background = 'rgba(92,53,32,0.1)' }}
           >
             <X size={14} />
           </button>
@@ -202,10 +202,10 @@ export function CartDrawer({ open, onClose }: { open: boolean; onClose: () => vo
                 </motion.div>
               </div>
               <div>
-                <div style={{ fontFamily: 'var(--font-playfair), Georgia, serif', color: '#5c3520', fontSize: '0.9rem', fontWeight: 700, marginBottom: '0.35rem' }}>
+                <div style={{ fontFamily: 'var(--font-playfair), Georgia, serif', color: '#c4a882', fontSize: '0.9rem', fontWeight: 700, marginBottom: '0.35rem' }}>
                   Tu carrito está vacío
                 </div>
-                <p style={{ color: '#3a2010', fontSize: '0.73rem', lineHeight: 1.6, maxWidth: '180px', margin: '0 auto' }}>
+                <p style={{ color: '#9a7c60', fontSize: '0.73rem', lineHeight: 1.6, maxWidth: '180px', margin: '0 auto' }}>
                   Explorá nuestros fogoneros artesanales.
                 </p>
               </div>
@@ -239,12 +239,12 @@ export function CartDrawer({ open, onClose }: { open: boolean; onClose: () => vo
               {/* Subtotal */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '0.9rem', paddingBottom: '0.9rem', borderBottom: '1px solid rgba(92,53,32,0.14)' }}>
                 <div>
-                  <div style={{ color: '#3d2415', fontSize: '0.57rem', letterSpacing: '0.16em', textTransform: 'uppercase', marginBottom: '1px' }}>Subtotal</div>
-                  <div style={{ color: '#4a2c1a', fontSize: '0.63rem' }}>{itemCount} {itemCount === 1 ? 'producto' : 'productos'}</div>
+                  <div style={{ color: '#c4a882', fontSize: '0.57rem', letterSpacing: '0.16em', textTransform: 'uppercase', marginBottom: '1px' }}>Subtotal</div>
+                  <div style={{ color: '#9a7c60', fontSize: '0.63rem' }}>{itemCount} {itemCount === 1 ? 'producto' : 'productos'}</div>
                 </div>
                 <div style={{ fontFamily: 'var(--font-playfair), Georgia, serif', fontSize: '1.5rem', fontWeight: 900, background: `linear-gradient(135deg, ${ORANGE} 20%, ${GOLD} 100%)`, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', lineHeight: 1 }}>
                   ${subtotal.toLocaleString('es-AR')}
-                  <span style={{ fontSize: '0.63rem', fontWeight: 400, WebkitTextFillColor: '#4a2c1a', marginLeft: '3px' }}>ARS</span>
+                  <span style={{ fontSize: '0.63rem', fontWeight: 400, WebkitTextFillColor: '#9a7c60', marginLeft: '3px' }}>ARS</span>
                 </div>
               </div>
 
@@ -257,7 +257,7 @@ export function CartDrawer({ open, onClose }: { open: boolean; onClose: () => vo
                 Ir al checkout <ArrowRight size={13} />
               </Link>
 
-              <p style={{ color: '#2e1a0e', fontSize: '0.61rem', textAlign: 'center', marginTop: '0.65rem', letterSpacing: '0.04em' }}>
+              <p style={{ color: '#9a7c60', fontSize: '0.61rem', textAlign: 'center', marginTop: '0.65rem', letterSpacing: '0.04em' }}>
                 Envíos a todo el país · Transferencia · MP · MODO
               </p>
             </motion.div>

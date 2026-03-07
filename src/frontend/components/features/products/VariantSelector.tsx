@@ -73,7 +73,7 @@ export function VariantSelector({ variants, includes, productInfo, onVariantChan
       {/* Size selector */}
       <div>
         <label style={{
-          display: 'block', color: '#7a5c44', fontSize: '0.7rem',
+          display: 'block', color: '#c4a882', fontSize: '0.7rem',
           letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: '0.75rem', fontWeight: 600,
         }}>
           Tamaño
@@ -89,7 +89,7 @@ export function VariantSelector({ variants, includes, productInfo, onVariantChan
                 borderRadius: '6px',
                 border: selectedSize === size ? '2px solid #c4622d' : '1px solid rgba(92, 53, 32, 0.4)',
                 background: selectedSize === size ? 'rgba(196, 98, 45, 0.12)' : 'rgba(45, 26, 14, 0.5)',
-                color: selectedSize === size ? '#f5e6d3' : '#7a5c44',
+                color: selectedSize === size ? '#f5e6d3' : '#c4a882',
                 fontSize: '0.9rem',
                 fontWeight: selectedSize === size ? 700 : 400,
                 cursor: 'pointer',
@@ -106,7 +106,7 @@ export function VariantSelector({ variants, includes, productInfo, onVariantChan
       {/* Color selector */}
       <div>
         <label style={{
-          display: 'block', color: '#7a5c44', fontSize: '0.7rem',
+          display: 'block', color: '#c4a882', fontSize: '0.7rem',
           letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: '0.75rem', fontWeight: 600,
         }}>
           Color — <span style={{ color: '#c4a882' }}>{COLOR_LABELS[selectedColor] ?? selectedColor}</span>
@@ -153,7 +153,7 @@ export function VariantSelector({ variants, includes, productInfo, onVariantChan
         gap: '0.75rem',
       }}>
         <div>
-          <div style={{ color: '#7a5c44', fontSize: '0.65rem', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: '2px' }}>
+          <div style={{ color: '#c4a882', fontSize: '0.65rem', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: '2px' }}>
             Precio final
           </div>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem' }}>
@@ -167,7 +167,7 @@ export function VariantSelector({ variants, includes, productInfo, onVariantChan
             </div>
             {hasSale && (
               <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                <span style={{ color: '#5c3520', fontSize: '0.9rem', textDecoration: 'line-through' }}>
+                <span style={{ color: '#c4a882', fontSize: '0.9rem', textDecoration: 'line-through' }}>
                   ${originalPrice.toLocaleString('es-AR')}
                 </span>
                 <span style={{
@@ -179,13 +179,13 @@ export function VariantSelector({ variants, includes, productInfo, onVariantChan
               </div>
             )}
           </div>
-          <div style={{ color: '#5c3520', fontSize: '0.75rem', marginTop: '2px' }}>ARS · Transferencia / Efectivo / MP</div>
+          <div style={{ color: '#c4a882', fontSize: '0.75rem', marginTop: '2px' }}>ARS · Transferencia / Efectivo / MP</div>
         </div>
         <div style={{ textAlign: 'right' }}>
-          <div style={{ color: '#5c3520', fontSize: '0.75rem' }}>{selectedSize}</div>
-          <div style={{ color: '#5c3520', fontSize: '0.75rem' }}>{COLOR_LABELS[selectedColor] ?? selectedColor}</div>
+          <div style={{ color: '#c4a882', fontSize: '0.75rem' }}>{selectedSize}</div>
+          <div style={{ color: '#c4a882', fontSize: '0.75rem' }}>{COLOR_LABELS[selectedColor] ?? selectedColor}</div>
           {includesList.length > 0 && (
-            <div style={{ color: '#5c3520', fontSize: '0.7rem', marginTop: '4px' }}>
+            <div style={{ color: '#c4a882', fontSize: '0.7rem', marginTop: '4px' }}>
               Incluye: {includesList.join(' + ')}
             </div>
           )}

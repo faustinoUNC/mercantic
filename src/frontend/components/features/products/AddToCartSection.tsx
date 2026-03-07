@@ -21,7 +21,7 @@ export function AddToCartSection({ productInfo, variants, includes }: AddToCartS
         includes={includes}
         productInfo={productInfo}
       />
-      <p style={{ color: '#3d2415', fontSize: '0.75rem', textAlign: 'center' }}>
+      <p style={{ color: '#c4a882', fontSize: '0.75rem', textAlign: 'center' }}>
         Envíos a todo el país · Pago en cuotas disponible
       </p>
     </div>
