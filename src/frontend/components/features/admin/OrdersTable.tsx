@@ -361,7 +361,7 @@ export function OrdersTable({ onNewOrdersCount }: OrdersTableProps = {}) {
       )}
 
       {/* Stats */}
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-3 grid-cols-2 sm:grid-cols-3">
         {[
           { label: 'Total Pedidos',   value: orders.length,             sub: 'registrados',    icon: ShoppingBag, tip: 'Cantidad total de pedidos en el sistema' },
           { label: 'Ingresos Totales', value: formatPrice(totalRevenue), sub: 'total acumulado', icon: TrendingUp,  tip: 'Suma del monto final de todos los pedidos' },
@@ -397,17 +397,17 @@ export function OrdersTable({ onNewOrdersCount }: OrdersTableProps = {}) {
                   {lastUpdated && <span className="ml-2 text-muted-foreground/60">· {getTimeAgo(lastUpdated)}</span>}
                 </CardDescription>
               </div>
-              <div className="flex items-center gap-2">
-                <div className="relative">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
+                <div className="relative flex-1 sm:flex-none">
                   <Input
                     placeholder="Buscar por ID o nombre…"
                     value={search}
                     onChange={e => setSearch(e.target.value)}
-                    className="w-52 pr-8"
+                    className="w-full sm:w-52 pr-8"
                   />
                   <Search className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 </div>
-                <Button size="sm" onClick={() => setShowManualOrder(true)} className="gap-1.5 whitespace-nowrap">
+                <Button size="sm" onClick={() => setShowManualOrder(true)} className="gap-1.5 whitespace-nowrap w-full sm:w-auto justify-center">
                   <Plus className="w-4 h-4" /> Nuevo pedido
                 </Button>
               </div>
@@ -474,7 +474,7 @@ export function OrdersTable({ onNewOrdersCount }: OrdersTableProps = {}) {
                         value={order.delivery_status}
                         onValueChange={v => updateOrder(order.id, { delivery_status: v as any })}
                       >
-                        <SelectTrigger className={`w-[110px] sm:w-[130px] font-medium text-xs ${DELIVERY_CONFIG[order.delivery_status]?.trigger ?? ''}`}>
+                        <SelectTrigger className={`w-[90px] sm:w-[130px] font-medium text-xs ${DELIVERY_CONFIG[order.delivery_status]?.trigger ?? ''}`}>
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
