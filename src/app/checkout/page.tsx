@@ -239,6 +239,7 @@ function StepCart({ onNext, appliedDiscount, onDiscountApply }: {
 interface CustomerData {
   name: string; email: string; phone: string
   address: string; city: string; province: string; postalCode: string
+  notes: string
 }
 
 function StepCustomer({ data, onChange, onNext, onBack }: {
@@ -252,9 +253,12 @@ function StepCustomer({ data, onChange, onNext, onBack }: {
   function validate() {
     const e: Record<string, string> = {}
     if (!data.name.trim()) e.name = 'Requerido'
+    if (!data.email.trim()) e.email = 'Requerido'
+    if (!data.phone.trim()) e.phone = 'Requerido'
     if (!data.address.trim()) e.address = 'Requerido'
-    if (!data.city.trim()) e.city = 'Requerido'
     if (!data.province.trim()) e.province = 'Requerido'
+    if (!data.city.trim()) e.city = 'Requerido'
+    if (!data.postalCode.trim()) e.postalCode = 'Requerido'
     return e
   }
 
@@ -295,8 +299,8 @@ function StepCustomer({ data, onChange, onNext, onBack }: {
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '1.5rem' }}>
         {field('Nombre completo', 'name', 'Juan García', true)}
-        {field('Email', 'email', 'juan@email.com')}
-        {field('Teléfono / WhatsApp', 'phone', '+54 9 351 000 0000')}
+        {field('Email', 'email', 'juan@email.com', true)}
+        {field('Teléfono / WhatsApp', 'phone', '+54 9 351 000 0000', true)}
       </div>
 
       <div style={{ height: '1px', background: 'rgba(92,53,32,0.3)', margin: '1.5rem 0' }} />
@@ -308,7 +312,6 @@ function StepCustomer({ data, onChange, onNext, onBack }: {
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '1.5rem' }}>
         {field('Dirección', 'address', 'Av. Corrientes 1234, Piso 2', true)}
         <div className="ck-city-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-          <div>{field('Ciudad', 'city', 'Córdoba', true)}</div>
           <div>
             <label style={{ display: 'block', color: '#7a5c44', fontSize: '0.7rem', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: '0.4rem', fontWeight: 600 }}>
               Provincia<span style={{ color: '#c4622d' }}> *</span>
@@ -337,8 +340,27 @@ function StepCustomer({ data, onChange, onNext, onBack }: {
             </select>
             {errors.province && <div style={{ color: '#ef4444', fontSize: '0.75rem', marginTop: '3px' }}>{errors.province}</div>}
           </div>
+          <div>{field('Ciudad', 'city', 'Córdoba', true)}</div>
         </div>
-        {field('Código postal', 'postalCode', '5000')}
+        {field('Código postal', 'postalCode', '5000', true)}
+        <div>
+          <label style={{ display: 'block', color: '#7a5c44', fontSize: '0.7rem', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: '0.4rem', fontWeight: 600 }}>
+            Comentarios del envío <span style={{ color: '#3d2415' }}>(opcional)</span>
+          </label>
+          <textarea
+            value={data.notes}
+            onChange={e => onChange({ ...data, notes: e.target.value })}
+            placeholder="Instrucciones especiales, horario de entrega, entre calles, etc."
+            rows={2}
+            style={{
+              width: '100%', padding: '0.7rem 0.85rem', boxSizing: 'border-box',
+              background: 'rgba(45,26,14,0.5)',
+              border: '1px solid rgba(92,53,32,0.4)',
+              borderRadius: '6px', color: '#f5e6d3', fontSize: '0.88rem',
+              outline: 'none', resize: 'vertical', fontFamily: 'inherit', lineHeight: 1.5,
+            }}
+          />
+        </div>
       </div>
 
       <div style={{ display: 'flex', gap: '0.75rem' }}>
@@ -654,12 +676,10 @@ export default function CheckoutPage() {
   const [orderId, setOrderId] = useState<number | null>(null)
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('transferencia')
   const [appliedDiscount, setAppliedDiscount] = useState<AppliedDiscount | null>(null)
-  const [customer, setCustomer] = useState<{
-    name: string; email: string; phone: string
-    address: string; city: string; province: string; postalCode: string
-  }>({
+  const [customer, setCustomer] = useState<CustomerData>({
     name: '', email: '', phone: '',
     address: '', city: '', province: '', postalCode: '',
+    notes: '',
   })
 
   const finalTotal = appliedDiscount ? Math.round(subtotal * (1 - appliedDiscount.percentage / 100)) : subtotal
@@ -697,6 +717,7 @@ export default function CheckoutPage() {
           city: customer.city || undefined,
           province: customer.province || undefined,
           postal_code: customer.postalCode || undefined,
+          notes: customer.notes || undefined,
         }),
       })
 

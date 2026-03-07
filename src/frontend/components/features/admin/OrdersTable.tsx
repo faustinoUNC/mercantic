@@ -11,12 +11,20 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Tooltip as InfoTooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import {
-  Search, Package, TrendingUp, Clock, Bell,
+  Search, Package, TrendingUp, Clock, Bell, Plus,
   User, Phone, Mail, MapPin, FileText, ShoppingBag, Copy, Check, Truck, PackageCheck,
 } from 'lucide-react'
 import type { OrderComplete } from '@/backend/features/orders/models/order.model'
 import { useOrders } from '@/frontend/hooks/useOrders'
+import { useProducts } from '@/frontend/hooks/useProducts'
 import { formatPrice, formatDate } from '@/lib/utils/formatting'
+
+const PROVINCES = [
+  'Buenos Aires','Ciudad Autónoma de Buenos Aires','Catamarca','Chaco','Chubut',
+  'Córdoba','Corrientes','Entre Ríos','Formosa','Jujuy','La Pampa','La Rioja',
+  'Mendoza','Misiones','Neuquén','Río Negro','Salta','San Juan','San Luis',
+  'Santa Cruz','Santa Fe','Santiago del Estero','Tierra del Fuego','Tucumán',
+]
 
 const DELIVERY_CONFIG: Record<string, { label: string; icon: React.ElementType; trigger: string; dot: string }> = {
   pending:   { label: 'Pendiente',  icon: Clock,         trigger: 'border-amber-300 bg-amber-50 text-amber-900 hover:bg-amber-100', dot: 'bg-amber-400' },
@@ -35,12 +43,246 @@ function DeliveryBadge({ status }: { status: string }) {
   )
 }
 
+// ── Manual Order Dialog ───────────────────────────────────────────────────────
+
+function ManualOrderDialog({ open, onClose, onCreated }: {
+  open: boolean
+  onClose: () => void
+  onCreated: () => void
+}) {
+  const { products, isLoading: productsLoading } = useProducts()
+  const [submitting, setSubmitting] = useState(false)
+  const [globalError, setGlobalError] = useState('')
+  const [errors, setErrors] = useState<Record<string, string>>({})
+  const [form, setForm] = useState({
+    productId: '', variantId: '', quantity: 1,
+    name: '', email: '', phone: '',
+    paymentMethod: 'transferencia',
+    address: '', province: '', city: '', postalCode: '', notes: '',
+    discountCode: '',
+  })
+
+  const selectedProduct = products.find(p => p.id === form.productId)
+  const activeVariants = selectedProduct?.variants.filter(v => v.active) ?? []
+
+  function set(key: string, value: string | number) {
+    setForm(prev => ({ ...prev, [key]: value }))
+    setErrors(prev => ({ ...prev, [key]: '' }))
+    setGlobalError('')
+  }
+
+  function validate() {
+    const e: Record<string, string> = {}
+    if (!form.variantId) e.variantId = 'Seleccioná un modelo y variante'
+    if (form.quantity < 1) e.quantity = 'Mínimo 1'
+    if (!form.name.trim()) e.name = 'Requerido'
+    if (!form.email.trim()) e.email = 'Requerido'
+    if (!form.phone.trim()) e.phone = 'Requerido'
+    return e
+  }
+
+  async function handleSubmit() {
+    const e = validate()
+    if (Object.keys(e).length) { setErrors(e); return }
+    setSubmitting(true)
+    setGlobalError('')
+    try {
+      const res = await fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          customer: { name: form.name, email: form.email, phone: form.phone },
+          items: [{ variant_id: form.variantId, quantity: form.quantity }],
+          payment_method: form.paymentMethod,
+          discount_code: form.discountCode || undefined,
+          shipping_address: form.address || undefined,
+          province: form.province || undefined,
+          city: form.city || undefined,
+          postal_code: form.postalCode || undefined,
+          notes: form.notes || undefined,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Error al crear el pedido')
+      onCreated()
+      onClose()
+      setForm({ productId: '', variantId: '', quantity: 1, name: '', email: '', phone: '', paymentMethod: 'transferencia', address: '', province: '', city: '', postalCode: '', notes: '', discountCode: '' })
+      setErrors({})
+    } catch (err: any) {
+      setGlobalError(err.message)
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  function FLabel({ label, error, required, children }: { label: string; error?: string; required?: boolean; children: React.ReactNode }) {
+    return (
+      <div className="space-y-1">
+        <label className="text-xs text-muted-foreground font-medium">
+          {label}{required && <span className="text-destructive ml-0.5">*</span>}
+        </label>
+        {children}
+        {error && <p className="text-xs text-destructive">{error}</p>}
+      </div>
+    )
+  }
+
+  function Sec({ title, children }: { title: string; children: React.ReactNode }) {
+    return (
+      <div className="space-y-3">
+        <h4 className="text-sm font-semibold border-b pb-2">{title}</h4>
+        {children}
+      </div>
+    )
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={o => !o && onClose()}>
+      <DialogContent className="max-w-lg p-0">
+        <div className="px-6 pt-6 pb-4 border-b">
+          <DialogHeader>
+            <DialogTitle>Nuevo pedido manual</DialogTitle>
+            <DialogDescription>Ingresá los datos del pedido recibido por otro canal (WhatsApp, teléfono, etc.)</DialogDescription>
+          </DialogHeader>
+        </div>
+
+        <ScrollArea className="max-h-[68vh]">
+          <div className="space-y-6 px-6 py-6">
+
+            {/* Producto */}
+            <Sec title="Producto">
+              <FLabel label="Modelo" error={errors.variantId} required>
+                <Select value={form.productId} onValueChange={v => { set('productId', v); set('variantId', '') }}>
+                  <SelectTrigger>
+                    <SelectValue placeholder={productsLoading ? 'Cargando...' : 'Seleccioná un modelo'} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {products.filter(p => !p.deleted_at).map(p => (
+                      <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {form.productId && (
+                  <Select value={form.variantId} onValueChange={v => set('variantId', v)}>
+                    <SelectTrigger className="mt-2">
+                      <SelectValue placeholder="Seleccioná talle y color" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {activeVariants.length === 0
+                        ? <SelectItem value="__none" disabled>Sin variantes activas</SelectItem>
+                        : activeVariants.map(v => (
+                          <SelectItem key={v.id} value={v.id}>
+                            {v.size} · {v.color} — {formatPrice(v.sale_price ?? v.price)}
+                          </SelectItem>
+                        ))
+                      }
+                    </SelectContent>
+                  </Select>
+                )}
+              </FLabel>
+              <FLabel label="Cantidad" error={errors.quantity} required>
+                <div className="flex items-center gap-3">
+                  <Button type="button" variant="outline" size="sm" className="h-8 w-8 p-0"
+                    onClick={() => set('quantity', Math.max(1, form.quantity - 1))}>−</Button>
+                  <span className="w-8 text-center font-semibold text-sm">{form.quantity}</span>
+                  <Button type="button" variant="outline" size="sm" className="h-8 w-8 p-0"
+                    onClick={() => set('quantity', form.quantity + 1)}>+</Button>
+                </div>
+              </FLabel>
+            </Sec>
+
+            {/* Cliente */}
+            <Sec title="Cliente">
+              <FLabel label="Nombre completo" error={errors.name} required>
+                <Input value={form.name} onChange={e => set('name', e.target.value)} placeholder="Juan García" />
+              </FLabel>
+              <FLabel label="Email" error={errors.email} required>
+                <Input type="email" value={form.email} onChange={e => set('email', e.target.value)} placeholder="juan@email.com" />
+              </FLabel>
+              <FLabel label="Teléfono / WhatsApp" error={errors.phone} required>
+                <Input value={form.phone} onChange={e => set('phone', e.target.value)} placeholder="+54 9 351 000 0000" />
+              </FLabel>
+            </Sec>
+
+            {/* Envío */}
+            <Sec title="Envío (opcional)">
+              <div className="grid grid-cols-2 gap-3">
+                <FLabel label="Provincia">
+                  <select
+                    value={form.province}
+                    onChange={e => set('province', e.target.value)}
+                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                  >
+                    <option value="">Seleccioná</option>
+                    {PROVINCES.map(p => <option key={p} value={p}>{p}</option>)}
+                  </select>
+                </FLabel>
+                <FLabel label="Ciudad">
+                  <Input value={form.city} onChange={e => set('city', e.target.value)} placeholder="Córdoba" />
+                </FLabel>
+              </div>
+              <FLabel label="Dirección">
+                <Input value={form.address} onChange={e => set('address', e.target.value)} placeholder="Av. Corrientes 1234, Piso 2" />
+              </FLabel>
+              <FLabel label="Código postal">
+                <Input value={form.postalCode} onChange={e => set('postalCode', e.target.value)} placeholder="5000" />
+              </FLabel>
+              <FLabel label="Comentarios del envío">
+                <textarea
+                  value={form.notes}
+                  onChange={e => set('notes', e.target.value)}
+                  placeholder="Instrucciones especiales, horario, entre calles, etc."
+                  rows={2}
+                  className="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring resize-none"
+                />
+              </FLabel>
+            </Sec>
+
+            {/* Pago */}
+            <Sec title="Pago">
+              <FLabel label="Método de pago" required>
+                <Select value={form.paymentMethod} onValueChange={v => set('paymentMethod', v)}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="transferencia">Transferencia (CBU/CVU)</SelectItem>
+                    <SelectItem value="mercadopago">MercadoPago</SelectItem>
+                    <SelectItem value="modo">MODO</SelectItem>
+                    <SelectItem value="efectivo">Efectivo</SelectItem>
+                  </SelectContent>
+                </Select>
+              </FLabel>
+              <FLabel label="Código de descuento (opcional)">
+                <Input value={form.discountCode} onChange={e => set('discountCode', e.target.value.toUpperCase())} placeholder="MERCANTIC2024" />
+              </FLabel>
+            </Sec>
+
+            {globalError && (
+              <p className="text-sm text-destructive bg-destructive/10 rounded-md px-3 py-2">{globalError}</p>
+            )}
+          </div>
+        </ScrollArea>
+
+        <div className="px-6 py-4 flex gap-3 border-t">
+          <Button variant="outline" onClick={onClose} className="flex-1" disabled={submitting}>Cancelar</Button>
+          <Button onClick={handleSubmit} disabled={submitting} className="flex-[2]">
+            {submitting ? 'Guardando...' : 'Crear pedido'}
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+// ── Orders Table ──────────────────────────────────────────────────────────────
+
 interface OrdersTableProps {
   onNewOrdersCount?: (n: number) => void
 }
 
 export function OrdersTable({ onNewOrdersCount }: OrdersTableProps = {}) {
-  const { orders, isLoading, lastUpdated, newOrdersCount, clearNewOrders, updateOrder } = useOrders()
+  const { orders, isLoading, lastUpdated, newOrdersCount, clearNewOrders, refresh, updateOrder } = useOrders()
 
   useEffect(() => {
     onNewOrdersCount?.(newOrdersCount)
@@ -50,6 +292,7 @@ export function OrdersTable({ onNewOrdersCount }: OrdersTableProps = {}) {
   const [page, setPage] = useState(1)
   const [selected, setSelected] = useState<OrderComplete | null>(null)
   const [copiedField, setCopiedField] = useState<string | null>(null)
+  const [showManualOrder, setShowManualOrder] = useState(false)
   const PER_PAGE = 10
 
   // reset page on filter change
@@ -152,14 +395,19 @@ export function OrdersTable({ onNewOrdersCount }: OrdersTableProps = {}) {
                   {lastUpdated && <span className="ml-2 text-muted-foreground/60">· {getTimeAgo(lastUpdated)}</span>}
                 </CardDescription>
               </div>
-              <div className="relative">
-                <Input
-                  placeholder="Buscar por ID o nombre…"
-                  value={search}
-                  onChange={e => setSearch(e.target.value)}
-                  className="w-64 pr-8"
-                />
-                <Search className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <div className="flex items-center gap-2">
+                <div className="relative">
+                  <Input
+                    placeholder="Buscar por ID o nombre…"
+                    value={search}
+                    onChange={e => setSearch(e.target.value)}
+                    className="w-52 pr-8"
+                  />
+                  <Search className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                </div>
+                <Button size="sm" onClick={() => setShowManualOrder(true)} className="gap-1.5 whitespace-nowrap">
+                  <Plus className="w-4 h-4" /> Nuevo pedido
+                </Button>
               </div>
             </div>
             <div className="flex gap-3 flex-wrap">
@@ -264,6 +512,13 @@ export function OrdersTable({ onNewOrdersCount }: OrdersTableProps = {}) {
           )}
         </CardContent>
       </Card>
+
+      {/* Manual order dialog */}
+      <ManualOrderDialog
+        open={showManualOrder}
+        onClose={() => setShowManualOrder(false)}
+        onCreated={() => refresh(true)}
+      />
 
       {/* Detail modal */}
       <Dialog open={!!selected} onOpenChange={open => !open && setSelected(null)}>
