@@ -105,7 +105,7 @@ function FeaturedPanel({
       }} />
 
       {/* Content */}
-      <div style={{
+      <div className="fp-content" style={{
         position: 'absolute', bottom: 0, left: 0, right: 0,
         padding: 'clamp(1.25rem, 3vw, 2.25rem)',
         display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: '1rem',
@@ -353,6 +353,16 @@ export function ProductShowcase() {
           50% { opacity: 0.7; }
         }
         div::-webkit-scrollbar { display: none; }
+        @media (max-width: 480px) {
+          .fp-content {
+            flex-direction: column !important;
+            align-items: flex-start !important;
+            gap: 0.5rem !important;
+          }
+          .fp-content > div:last-child {
+            text-align: left !important;
+          }
+        }
       `}</style>
     </section>
   )

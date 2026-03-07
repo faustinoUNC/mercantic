@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Inter, Playfair_Display } from 'next/font/google'
 import './globals.css'
 import { CartProvider } from '@/frontend/context/CartContext'
+import { FloatingWhatsApp } from '@/frontend/components/features/FloatingWhatsApp'
 
 const inter = Inter({
   subsets: ['latin'],
@@ -37,6 +38,7 @@ export default function RootLayout({
       <body className={`${inter.variable} ${playfair.variable} font-sans antialiased`}>
         <CartProvider>
           {children}
+          <FloatingWhatsApp />
         </CartProvider>
       </body>
     </html>

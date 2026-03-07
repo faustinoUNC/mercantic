@@ -142,7 +142,7 @@ function NewCard({
         }} />
 
         {/* ── Content ────────────────────────────────────────────────── */}
-        <div style={{
+        <div className="nl-content" style={{
           position: 'absolute', bottom: 0, left: 0, right: 0,
           padding: 'clamp(1.25rem, 3vw, 2rem)',
           display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: '1rem',
@@ -339,6 +339,16 @@ export function NewLaunches() {
 
       <style>{`
         @keyframes nlPulse { 0%,100%{opacity:.4} 50%{opacity:.7} }
+        @media (max-width: 480px) {
+          .nl-content {
+            flex-direction: column !important;
+            align-items: flex-start !important;
+            gap: 0.5rem !important;
+          }
+          .nl-content > div:last-child {
+            text-align: left !important;
+          }
+        }
         @keyframes nlPing {
           0%   { box-shadow: 0 0 0 0 rgba(232,120,58,0.55); }
           70%  { box-shadow: 0 0 0 7px rgba(232,120,58,0); }
