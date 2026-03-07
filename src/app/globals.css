@@ -102,10 +102,12 @@
   }
   html {
     scroll-behavior: smooth;
+    overscroll-behavior: none;
   }
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
+    overscroll-behavior: none;
   }
 }
 
